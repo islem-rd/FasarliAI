@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 
 // Helper to create a Supabase client for storage operations
-function getSupabaseStorageClient(request?: NextRequest) {
+async function getSupabaseStorageClient(request?: NextRequest) {
   if (request) {
     // For API routes
     return createServerClient(
@@ -22,7 +22,7 @@ function getSupabaseStorageClient(request?: NextRequest) {
     )
   } else {
     // For server components
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     return createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -50,7 +50,7 @@ export async function uploadPDFToStorage(
   file: File
 ): Promise<{ path: string | null; error: any }> {
   try {
-    const supabase = getSupabaseStorageClient(request)
+    const supabase = await getSupabaseStorageClient(request)
     
     // Create a unique file path: userId/conversationId/filename
     const fileExt = file.name.split('.').pop()
@@ -89,7 +89,7 @@ export async function downloadPDFFromStorage(
   storagePath: string
 ): Promise<{ data: Buffer | null; error: any }> {
   try {
-    const supabase = getSupabaseStorageClient(request)
+    const supabase = await getSupabaseStorageClient(request)
     
     const { data, error } = await supabase.storage
       .from('pdfs')
@@ -119,7 +119,7 @@ export async function deletePDFFromStorage(
   storagePath: string
 ): Promise<{ success: boolean; error: any }> {
   try {
-    const supabase = getSupabaseStorageClient(request)
+    const supabase = await getSupabaseStorageClient(request)
     
     const { error } = await supabase.storage
       .from('pdfs')
