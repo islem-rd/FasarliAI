@@ -1,0 +1,30 @@
+# Web Framework
+fastapi
+uvicorn[standard]  # ASGI server with standard extras (websockets, watchfiles)
+python-multipart  # Required for file uploads in FastAPI
+
+# PDF Processing
+pypdf  # PDF text extraction
+
+# LangChain Ecosystem
+langchain  # Core LangChain framework
+langchain-community  # Community integrations (HuggingFace embeddings, FAISS)
+langchain-classic  # Classic LangChain chains (RetrievalQA)
+langchain-groq  # Groq LLM integration
+langchain-text-splitters  # Text chunking utilities
+
+# Machine Learning & Embeddings
+sentence-transformers  # HuggingFace sentence transformers for embeddings
+faiss-cpu  # Facebook AI Similarity Search for vector storage (CPU version)
+
+# Environment Variables
+python-dotenv  # Load environment variables from .env file
+
+# Email Functionality
+fastapi-mail  # Email sending for MFA codes
+
+# Web Scraping & Search
+beautifulsoup4  # HTML parsing for web scraping
+requests  # HTTP requests for web scraping
+duckduckgo-search  # DuckDuckGo search API for finding sources
+
