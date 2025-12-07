@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     // Create a File-like object from the buffer
     // Convert Buffer to ArrayBuffer explicitly to satisfy TypeScript
-    const arrayBuffer = pdfBuffer.buffer.slice(pdfBuffer.byteOffset, pdfBuffer.byteOffset + pdfBuffer.byteLength)
+    const arrayBuffer = pdfBuffer.buffer.slice(pdfBuffer.byteOffset, pdfBuffer.byteOffset + pdfBuffer.byteLength) as ArrayBuffer
     const blob = new Blob([arrayBuffer], { type: 'application/pdf' })
     const formData = new FormData()
     formData.append('file', blob, pdf.filename)
