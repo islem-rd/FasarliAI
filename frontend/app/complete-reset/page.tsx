@@ -73,8 +73,9 @@ function CompleteResetContent() {
       try {
         // Request password reset email from Supabase
         // This will send an email with a link to reset password
+        const origin = typeof window !== 'undefined' ? window.location.origin : ''
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${origin}/auth/callback`,
         })
 
         if (error) {
