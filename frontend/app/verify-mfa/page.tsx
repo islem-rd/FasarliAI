@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -27,7 +27,7 @@ const mfaSchema = z.object({
 
 type MFAFormValues = z.infer<typeof mfaSchema>
 
-export default function VerifyMFAPage() {
+function VerifyMFAContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
@@ -231,5 +231,13 @@ export default function VerifyMFAPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function VerifyMFAPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyMFAContent />
+    </Suspense>
   )
 }
