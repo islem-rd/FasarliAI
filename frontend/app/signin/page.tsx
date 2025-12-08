@@ -93,27 +93,34 @@ export default function SignInPage() {
         password: values.password,
       }))
 
-      // Redirect to MFA page immediately (don't wait for email)
-      await router.push(`/verify-mfa?email=${encodeURIComponent(values.email)}`)
-      setIsVerifying(false)
-
-      // Send MFA code in background (no await to prevent delay)
-      fetch(`${BACKEND_URL}/api/users/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-        }),
-      }).then(response => {
+      // Send MFA code BEFORE redirect to ensure it's sent
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/users/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: values.email,
+            password: values.password,
+          }),
+        })
+        
         if (response.ok) {
           console.log('MFA code sent successfully')
+          toast.success('Verification code sent to your email')
         } else {
           console.error('Failed to send MFA code')
+          toast.warning('Check logs for MFA code')
         }
-      }).catch(err => console.error('Error sending MFA code:', err))
+      } catch (err) {
+        console.error('Error sending MFA code:', err)
+        toast.warning('MFA request failed, check logs')
+      }
+
+      // Redirect to MFA page after sending code
+      await router.push(`/verify-mfa?email=${encodeURIComponent(values.email)}`)
+      setIsVerifying(false)
 
     } catch (error) {
       setIsLoading(false)
