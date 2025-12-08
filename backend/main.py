@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import uuid
 import shutil
 import re
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig   
+import resend
 
 # Load environment variables from backend directory
 env_path = Path(__file__).parent / ".env"
@@ -20,38 +20,31 @@ load_dotenv(dotenv_path=env_path, override=True)
 app = FastAPI(title="PDF ChatBot API")
 
 # EMAIL CONFIG
-conf = ConnectionConfig(
-    MAIL_USERNAME = os.getenv("GOOGLE_EMAIL"),   
-    MAIL_PASSWORD = os.getenv("GOOGLE_APP_PASSWORD"), 
-    MAIL_FROM = os.getenv("GOOGLE_EMAIL"),     
-    MAIL_SERVER = "smtp.gmail.com",
-    MAIL_PORT = 587,
-    MAIL_STARTTLS = True,
-    MAIL_SSL_TLS = False,
-    USE_CREDENTIALS = True
-)
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "onboarding@resend.dev")  # Default Resend test email
 MFA_DEBUG_MODE = os.getenv("MFA_DEBUG_MODE", "false").lower() == "true"
 
 async def send_mfa_email(recipient: str, code: str, subject: str = "Your Login Verification Code") -> bool:
     """
-    Send MFA code via email. Falls back to console logging if email is not configured.
+    Send MFA code via email using Resend API. Falls back to console logging if not configured.
     Returns True if email was sent successfully, False otherwise.
     """
     try:
-        # Check if email credentials are configured
-        if not os.getenv("GOOGLE_EMAIL") or not os.getenv("GOOGLE_APP_PASSWORD"):
-            print(f"[INFO] Email not configured. MFA code for {recipient}: {code}")
+        # Check if Resend is configured
+        if not RESEND_API_KEY:
+            print(f"[INFO] Resend not configured. MFA code for {recipient}: {code}")
             return False
         
-        message = MessageSchema(
-            subject=subject,
-            recipients=[recipient],
-            body=f"Your verification code is: {code}\n\nThis code expires in 3 minutes.\n\nDo not share this code with anyone.",
-            subtype="plain",
-        )
+        resend.api_key = RESEND_API_KEY
         
-        fast_mail = FastMail(conf)
-        await fast_mail.send_message(message)
+        params = {
+            "from": FROM_EMAIL,
+            "to": [recipient],
+            "subject": subject,
+            "html": f"<strong>Your verification code is: {code}</strong><br><br>This code expires in 3 minutes.<br><br>Do not share this code with anyone.",
+        }
+        
+        email = resend.Emails.send(params)
         print(f"[INFO] MFA email sent successfully to {recipient}")
         return True
         
