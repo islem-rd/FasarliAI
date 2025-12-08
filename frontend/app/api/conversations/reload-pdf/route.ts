@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create a File-like object from the buffer
-    const blob = new Blob([pdfBuffer], { type: 'application/pdf' })
+    const blob = new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' })
     const formData = new FormData()
     formData.append('file', blob, pdf.filename)
 

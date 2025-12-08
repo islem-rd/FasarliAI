@@ -25,7 +25,7 @@ function ButtonGroup({
   className,
   orientation,
   ...props
-}: React.ComponentProps<'div'> & VariantProps<typeof buttonGroupVariants>) {
+}: any) {
   return (
     <div
       role="group"
@@ -41,9 +41,7 @@ function ButtonGroupText({
   className,
   asChild = false,
   ...props
-}: React.ComponentProps<'div'> & {
-  asChild?: boolean
-}) {
+}: any) {
   const Comp = asChild ? Slot : 'div'
 
   return (
@@ -61,7 +59,7 @@ function ButtonGroupSeparator({
   className,
   orientation = 'vertical',
   ...props
-}: React.ComponentProps<typeof Separator>) {
+}: any) {
   return (
     <Separator
       data-slot="button-group-separator"

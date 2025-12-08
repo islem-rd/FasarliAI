@@ -306,7 +306,7 @@ export function ConversationsList({ onSelectConversation }: ConversationsListPro
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6 shrink-0"
-                onClick={(e) => handleDeleteConversation(conv.id, e)}
+                onClick={(e: any) => handleDeleteConversation(conv.id, e)}
               >
                 <Trash2 className="w-3 h-3" />
               </Button>

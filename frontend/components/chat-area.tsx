@@ -75,7 +75,8 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as HTMLElement
       // Don't close if clicking on the sign out button
-      if (target.closest('button') && target.closest('button').textContent?.includes('Sign Out')) {
+      const button = target.closest('button')
+      if (button && button.textContent?.includes('Sign Out')) {
         return
       }
       
@@ -718,8 +719,8 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
                   : "Upload a PDF first to start chatting..."
             }
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !isLoading && !pdfLoading && handleSendMessage()}
+            onChange={(e: any) => setInputValue(e.target.value)}
+            onKeyDown={(e: any) => e.key === 'Enter' && !isLoading && !pdfLoading && handleSendMessage()}
             className="flex-1 bg-background border-border"
             disabled={!sessionId || isLoading || pdfLoading}
           />
