@@ -128,8 +128,19 @@ export default function SignInPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
-      {/* Gradient Background - Instant Loading */}
-      <div className="absolute inset-0 bg-gradient-to-br from-teal-900 via-teal-800 to-teal-950" />
+      {/* Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source src="/videos/ai-background.mp4" type="video/mp4" />
+      </video>
+      
+      {/* Overlay with purple tint */}
+      <div className="absolute inset-0 bg-teal-950/80 dark:bg-teal-950/90" />
       
       {/* Theme Toggle Button */}
       <button

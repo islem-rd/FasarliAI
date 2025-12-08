@@ -243,10 +243,22 @@ export default function DashboardPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Gradient Background - Fast */}
+      {/* Background Video - Bottom layer */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed inset-0 w-full h-full object-cover"
+        style={{ zIndex: 0, pointerEvents: 'none' }}
+      >
+        <source src="/videos/ai-background.mp4" type="video/mp4" />
+      </video>
+
+      {/* Overlay - Above video */}
       <div 
-        className="fixed inset-0 bg-gradient-to-br from-teal-900 via-teal-800 to-teal-950" 
-        style={{ zIndex: 0, pointerEvents: 'none' }} 
+        className="fixed inset-0 bg-teal-950/80 dark:bg-teal-950/90" 
+        style={{ zIndex: 1, pointerEvents: 'none' }} 
       />
 
       {/* Content - Top layer */}
