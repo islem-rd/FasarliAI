@@ -1,0 +1,33 @@
+name: fasarliai-backend
+services:
+  - name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - port: 8000
+        protocol: http
+    env:
+      - name: PORT
+        value: "8000"
+      - name: BREVO_API_KEY
+        secret: BREVO_API_KEY
+      - name: MFA_DEBUG_MODE
+        value: "true"
+      - name: FROM_EMAIL
+        value: islamriden@gmail.com
+      - name: GROQ_API_KEY
+        secret: GROQ_API_KEY
+      - name: GOOGLE_EMAIL
+        value: islamriden@gmail.com
+      - name: GOOGLE_APP_PASSWORD
+        secret: GOOGLE_APP_PASSWORD
+      - name: NEXT_PUBLIC_SUPABASE_URL
+        value: https://fmvudazvwqfuiszomvcu.supabase.co
+      - name: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        secret: NEXT_PUBLIC_SUPABASE_ANON_KEY
+      - name: SUPABASE_SERVICE_ROLE_KEY
+        secret: SUPABASE_SERVICE_ROLE_KEY
+    regions:
+      - fra
+    instance_type: free
