@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState, useRef, Suspense } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Sun, Moon } from 'lucide-react'
 
-function CompleteResetContent() {
+export default function CompleteResetPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
@@ -73,9 +73,8 @@ function CompleteResetContent() {
       try {
         // Request password reset email from Supabase
         // This will send an email with a link to reset password
-        const origin = typeof window !== 'undefined' ? window.location.origin : ''
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         })
 
         if (error) {
@@ -176,13 +175,5 @@ function CompleteResetContent() {
         )}
       </div>
     </div>
-  )
-}
-
-export default function CompleteResetPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <CompleteResetContent />
-    </Suspense>
   )
 }

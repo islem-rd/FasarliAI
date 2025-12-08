@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, Suspense } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -32,7 +32,7 @@ const resetPasswordSchema = z.object({
 
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
 
-function ResetPasswordContent() {
+export default function ResetPasswordPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
@@ -284,13 +284,5 @@ function ResetPasswordContent() {
         </div>
       </div>
     </div>
-  )
-}
-
-export default function ResetPasswordPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ResetPasswordContent />
-    </Suspense>
   )
 }

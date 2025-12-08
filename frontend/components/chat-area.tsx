@@ -75,8 +75,7 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as HTMLElement
       // Don't close if clicking on the sign out button
-      const button = target.closest('button')
-      if (button && button.textContent?.includes('Sign Out')) {
+      if (target.closest('button') && target.closest('button').textContent?.includes('Sign Out')) {
         return
       }
       

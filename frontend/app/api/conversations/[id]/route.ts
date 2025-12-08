@@ -3,10 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
     const supabase = await createClient()
 
     // Get the user
@@ -19,7 +18,7 @@ export async function GET(
       )
     }
 
-    const conversationId = id
+    const conversationId = params.id
 
     // Fetch conversation with PDFs
     const { data: conversation, error: convError } = await supabase
