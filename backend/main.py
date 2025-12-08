@@ -25,9 +25,9 @@ conf = ConnectionConfig(
     MAIL_PASSWORD = os.getenv("GOOGLE_APP_PASSWORD"), 
     MAIL_FROM = os.getenv("GOOGLE_EMAIL"),     
     MAIL_SERVER = "smtp.gmail.com",
-    MAIL_PORT = 465,
-    MAIL_STARTTLS = False,
-    MAIL_SSL_TLS = True,
+    MAIL_PORT = 587,
+    MAIL_STARTTLS = True,
+    MAIL_SSL_TLS = False,
     USE_CREDENTIALS = True
 )
 MFA_DEBUG_MODE = os.getenv("MFA_DEBUG_MODE", "false").lower() == "true"
