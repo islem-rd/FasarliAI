@@ -31,7 +31,6 @@ interface PDFDocument {
 export default function DashboardPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
-  const videoRef = useRef<HTMLVideoElement>(null)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [documents, setDocuments] = useState<PDFDocument[]>([])
   const [stats, setStats] = useState({
@@ -62,10 +61,6 @@ export default function DashboardPage() {
     // Initialize theme
     const isDark = document.documentElement.classList.contains('dark')
     setIsDarkMode(isDark)
-    
-    if (videoRef.current) {
-      videoRef.current.play().catch(err => console.log('Video autoplay failed:', err))
-    }
   }, [])
 
   const toggleTheme = () => {
@@ -248,23 +243,10 @@ export default function DashboardPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Background Video - Bottom layer */}
-      <video
-        ref={videoRef}
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="fixed inset-0 w-full h-full object-cover"
-        style={{ zIndex: 0, pointerEvents: 'none' }}
-      >
-        <source src="/videos/ai-background.mp4" type="video/mp4" />
-      </video>
-
-      {/* Overlay - Above video */}
+      {/* Gradient Background - Fast */}
       <div 
-        className="fixed inset-0 bg-teal-950/80 dark:bg-teal-950/90" 
-        style={{ zIndex: 1, pointerEvents: 'none' }} 
+        className="fixed inset-0 bg-gradient-to-br from-teal-900 via-teal-800 to-teal-950" 
+        style={{ zIndex: 0, pointerEvents: 'none' }} 
       />
 
       {/* Content - Top layer */}

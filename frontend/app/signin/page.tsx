@@ -35,16 +35,9 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
-
   useEffect(() => {
     const isDark = document.documentElement.classList.contains('dark')
     setIsDarkMode(isDark)
-    
-    // Force video to play
-    if (videoRef.current) {
-      videoRef.current.play().catch(err => console.log('Video autoplay failed:', err))
-    }
   }, [])
 
   useEffect(() => {
@@ -135,20 +128,8 @@ export default function SignInPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
-      {/* Background Video */}
-      <video
-        ref={videoRef}
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover"
-      >
-        <source src="/videos/ai-background.mp4" type="video/mp4" />
-      </video>
-      
-      {/* Overlay with purple tint */}
-      <div className="absolute inset-0 bg-teal-950/80 dark:bg-teal-950/90" />
+      {/* Gradient Background - Instant Loading */}
+      <div className="absolute inset-0 bg-gradient-to-br from-teal-900 via-teal-800 to-teal-950" />
       
       {/* Theme Toggle Button */}
       <button
