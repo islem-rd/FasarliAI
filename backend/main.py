@@ -11,7 +11,8 @@ from dotenv import load_dotenv
 import uuid
 import shutil
 import re
-import resend
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
 
 # Load environment variables from backend directory
 env_path = Path(__file__).parent / ".env"
@@ -20,34 +21,42 @@ load_dotenv(dotenv_path=env_path, override=True)
 app = FastAPI(title="PDF ChatBot API")
 
 # EMAIL CONFIG
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "onboarding@resend.dev")  # Default Resend test email
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@fasarliai.com")
+FROM_NAME = os.getenv("FROM_NAME", "FasarliAI")
 MFA_DEBUG_MODE = os.getenv("MFA_DEBUG_MODE", "false").lower() == "true"
 
 async def send_mfa_email(recipient: str, code: str, subject: str = "Your Login Verification Code") -> bool:
     """
-    Send MFA code via email using Resend API. Falls back to console logging if not configured.
+    Send MFA code via email using Brevo API. Falls back to console logging if not configured.
     Returns True if email was sent successfully, False otherwise.
     """
     try:
-        # Check if Resend is configured
-        if not RESEND_API_KEY:
-            print(f"[INFO] Resend not configured. MFA code for {recipient}: {code}")
+        # Check if Brevo is configured
+        if not BREVO_API_KEY:
+            print(f"[INFO] Brevo not configured. MFA code for {recipient}: {code}")
             return False
         
-        resend.api_key = RESEND_API_KEY
+        configuration = sib_api_v3_sdk.Configuration()
+        configuration.api_key['api-key'] = BREVO_API_KEY
         
-        params = {
-            "from": FROM_EMAIL,
-            "to": [recipient],
-            "subject": subject,
-            "html": f"<strong>Your verification code is: {code}</strong><br><br>This code expires in 3 minutes.<br><br>Do not share this code with anyone.",
-        }
+        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
         
-        email = resend.Emails.send(params)
+        send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient}],
+            sender={"email": FROM_EMAIL, "name": FROM_NAME},
+            subject=subject,
+            html_content=f"<strong>Your verification code is: {code}</strong><br><br>This code expires in 3 minutes.<br><br>Do not share this code with anyone."
+        )
+        
+        api_instance.send_transac_email(send_smtp_email)
         print(f"[INFO] MFA email sent successfully to {recipient}")
         return True
         
+    except ApiException as e:
+        print(f"[WARN] Unable to send MFA email to {recipient}: {e}")
+        print(f"[DEBUG] MFA CODE for {recipient}: {code}")
+        return False
     except Exception as exc:
         print(f"[WARN] Unable to send MFA email to {recipient}: {exc}")
         print(f"[DEBUG] MFA CODE for {recipient}: {code}")

@@ -21,8 +21,7 @@ faiss-cpu  # Facebook AI Similarity Search for vector storage (CPU version)
 python-dotenv  # Load environment variables from .env file
 
 # Email Functionality
-resend  # Modern email API for MFA codes
-httpx  # HTTP client for Resend API
+sib-api-v3-sdk  # Brevo (Sendinblue) API for unlimited email sending
 
 # Web Scraping & Search
 beautifulsoup4  # HTML parsing for web scraping
