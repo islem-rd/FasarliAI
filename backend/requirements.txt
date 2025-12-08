@@ -9,7 +9,6 @@ pypdf  # PDF text extraction
 # LangChain Ecosystem
 langchain  # Core LangChain framework
 langchain-community  # Community integrations (HuggingFace embeddings, FAISS)
-langchain-classic  # Classic LangChain chains (RetrievalQA)
 langchain-groq  # Groq LLM integration
 langchain-text-splitters  # Text chunking utilities
 
