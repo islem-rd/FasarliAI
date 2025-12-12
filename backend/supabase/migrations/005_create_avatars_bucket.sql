@@ -13,8 +13,14 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
+-- Drop existing policies if they exist (to avoid conflicts)
+DROP POLICY IF EXISTS "Users can upload their own avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can read avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their own avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own avatars" ON storage.objects;
+
 -- Create policy to allow authenticated users to upload their own avatars
-CREATE POLICY IF NOT EXISTS "Users can upload their own avatars"
+CREATE POLICY "Users can upload their own avatars"
 ON storage.objects FOR INSERT
 TO authenticated
 WITH CHECK (
@@ -23,13 +29,13 @@ WITH CHECK (
 );
 
 -- Create policy to allow anyone to read avatars (public bucket)
-CREATE POLICY IF NOT EXISTS "Anyone can read avatars"
+CREATE POLICY "Anyone can read avatars"
 ON storage.objects FOR SELECT
 TO public
 USING (bucket_id = 'avatars');
 
 -- Create policy to allow users to update their own avatars
-CREATE POLICY IF NOT EXISTS "Users can update their own avatars"
+CREATE POLICY "Users can update their own avatars"
 ON storage.objects FOR UPDATE
 TO authenticated
 USING (
@@ -42,7 +48,7 @@ WITH CHECK (
 );
 
 -- Create policy to allow users to delete their own avatars
-CREATE POLICY IF NOT EXISTS "Users can delete their own avatars"
+CREATE POLICY "Users can delete their own avatars"
 ON storage.objects FOR DELETE
 TO authenticated
 USING (
