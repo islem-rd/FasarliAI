@@ -40,8 +40,8 @@ async def send_mfa_email(recipient: str, code: str, subject: str = "Your Login V
         configuration = sib_api_v3_sdk.Configuration()
         configuration.api_key['api-key'] = BREVO_API_KEY
         
-        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
-        
+                api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+
                 # Modern HTML email design matching FasarliAI branding
                 html_content = f"""
                 <div style='background:linear-gradient(135deg,#1e293b 0%,#0ea5e9 100%);padding:40px 0;font-family:Segoe UI,Roboto,sans-serif;'>
@@ -68,10 +68,10 @@ async def send_mfa_email(recipient: str, code: str, subject: str = "Your Login V
                         subject=subject,
                         html_content=html_content
                 )
-        
-        api_instance.send_transac_email(send_smtp_email)
-        print(f"[INFO] MFA email sent successfully to {recipient}")
-        return True
+
+                api_instance.send_transac_email(send_smtp_email)
+                print(f"[INFO] MFA email sent successfully to {recipient}")
+                return True
         
     except ApiException as e:
         print(f"[WARN] Unable to send MFA email to {recipient}: {e}")
