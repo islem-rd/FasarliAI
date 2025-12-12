@@ -44,22 +44,20 @@ async def send_mfa_email(recipient: str, code: str, subject: str = "Your Login V
 
         # Modern HTML email design matching FasarliAI branding
         html_content = f"""
-        <div style='background:linear-gradient(135deg,#1e293b 0%,#0ea5e9 100%);padding:40px 0;font-family:Segoe UI,Roboto,sans-serif;'>
+        <div style='background:linear-gradient(135deg,#000000 0%,#40e0d0 100%);padding:40px 0;font-family:Segoe UI,Roboto,sans-serif;'>
             <div style='max-width:420px;margin:0 auto;background:#fff;border-radius:18px;box-shadow:0 4px 24px #0001;padding:32px 28px 28px 28px;'>
                 <div style='text-align:center;margin-bottom:18px;'>
                     <img src='https://fasarliai.com/logo.png' alt='FasarliAI' style='height:48px;margin-bottom:8px;'>
-                    <h2 style='color:#0ea5e9;font-weight:700;margin:0 0 8px 0;font-size:1.5rem;'>FasarliAI</h2>
+                    <h2 style='color:#40e0d0;font-weight:700;margin:0 0 8px 0;font-size:1.5rem;'>FasarliAI</h2>
                 </div>
-                <h3 style='color:#1e293b;font-size:1.15rem;font-weight:600;margin-bottom:12px;text-align:center;'>Votre code de vérification</h3>
-                <div style='background:#f1f5f9;border-radius:10px;padding:18px 0;margin:0 auto 18px auto;text-align:center;font-size:2rem;letter-spacing:0.2em;color:#0ea5e9;font-weight:700;width:220px;'>
+                <h3 style='color:#000000;font-size:1.15rem;font-weight:600;margin-bottom:12px;text-align:center;'>Votre code de vérification</h3>
+                <div style='background:#f0f0f0;border-radius:10px;padding:18px 0;margin:0 auto 18px auto;text-align:center;font-size:2rem;letter-spacing:0.2em;color:#40e0d0;font-weight:700;width:220px;'>
                     {code}
                 </div>
-                <p style='color:#334155;font-size:1rem;margin-bottom:10px;text-align:center;'>Ce code expire dans <b>3 minutes</b>.<br>Ne partagez jamais ce code avec qui que ce soit.</p>
-                <div style='margin-top:24px;text-align:center;'>
-                    <a href='https://fasarliai.com' style='display:inline-block;padding:10px 24px;background:#0ea5e9;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:1rem;'>Accéder à FasarliAI</a>
-                </div>
+                <p style='color:#000000;font-size:1rem;margin-bottom:10px;text-align:center;'>Ce code expire dans <b>3 minutes</b>.<br>Ne partagez jamais ce code avec qui que ce soit.</p>
+                
             </div>
-            <p style='text-align:center;color:#cbd5e1;font-size:0.95rem;margin-top:32px;'>© {datetime.now().year} FasarliAI. Tous droits réservés.</p>
+            <p style='text-align:center;color:#ffffff;font-size:0.95rem;margin-top:32px;'>© {datetime.now().year} FasarliAI. Tous droits réservés.</p>
         </div>
         """
         send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
