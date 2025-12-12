@@ -35,6 +35,7 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
   const [isLoading, setIsLoading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<string>('')
   const [username, setUsername] = useState<string | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -98,6 +99,7 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
           const { data } = await getUser(user.id)
           if (data) {
             setUsername(data.username)
+            setAvatarUrl(data.avatar_url)
             console.log('Username loaded:', data.username)
           } else {
             console.log('No user data found')
@@ -608,9 +610,17 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
                 <div className="py-2">
                   <div className="px-4 py-3 border-b border-border">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center text-white font-semibold">
-                        {(username || user?.email || 'U').charAt(0).toUpperCase()}
-                      </div>
+                      {avatarUrl ? (
+                        <img
+                          src={avatarUrl}
+                          alt="Profile"
+                          className="w-10 h-10 rounded-full object-cover border-2 border-emerald-700 dark:border-emerald-400"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-emerald-700 dark:bg-emerald-600 flex items-center justify-center text-white font-semibold">
+                          {(username || user?.email || 'U').charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div className="flex-1">
                         <div className="text-sm font-semibold text-foreground">{username || user?.email?.split('@')[0] || 'User'}</div>
                         <div className="text-xs text-muted-foreground truncate">{user?.email || ''}</div>
@@ -633,6 +643,23 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
                   >
                     <BarChart3 className="w-4 h-4 mr-2" />
                     Dashboard
+                  </button>
+                  <button 
+                    type="button"
+                    className="w-full flex items-center justify-start px-4 py-2.5 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors cursor-pointer border-b border-border"
+                    onMouseDown={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                    }}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setShowSettingsMenu(false)
+                      router.push('/settings')
+                    }}
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Settings
                   </button>
                   <button 
                     type="button"

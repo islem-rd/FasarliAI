@@ -4,6 +4,7 @@ export interface User {
   id: string
   email: string
   username: string | null
+  avatar_url: string | null
   created_at: string
   updated_at: string
 }
@@ -52,7 +53,7 @@ export async function createUser(userId: string, email: string, username?: strin
   return { data, error }
 }
 
-export async function updateUser(userId: string, updates: { username?: string }) {
+export async function updateUser(userId: string, updates: { username?: string; avatar_url?: string }) {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('users')
