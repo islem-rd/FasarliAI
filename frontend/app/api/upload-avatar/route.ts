@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/supabase/server-auth'
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { updateUserServer } from '@/lib/supabase/database-server'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
