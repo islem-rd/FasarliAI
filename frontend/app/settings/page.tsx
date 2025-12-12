@@ -46,10 +46,16 @@ export default function SettingsPage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     const isDark = document.documentElement.classList.contains('dark')
     setIsDarkMode(isDark)
+    
+    // Force video to play
+    if (videoRef.current) {
+      videoRef.current.play().catch(err => console.log('Video autoplay failed:', err))
+    }
   }, [])
 
   useEffect(() => {
@@ -218,270 +224,294 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black dark:from-black dark:via-gray-900 dark:to-black">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-black via-gray-900 to-black border-b border-gray-800 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.push('/')}
-                className="text-white hover:bg-white/10"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#40e0d0] via-cyan-400 to-[#40e0d0]">
-                  Settings
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Background Video - Bottom layer */}
+      <video
+        ref={videoRef}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed inset-0 w-full h-full object-cover"
+        style={{ zIndex: 0, pointerEvents: 'none' }}
+      >
+        <source src="/videos/ai-background.mp4" type="video/mp4" />
+      </video>
+
+      {/* Overlay - Above video */}
+      <div 
+        className="fixed inset-0 bg-teal-950/80 dark:bg-teal-950/90" 
+        style={{ zIndex: 1, pointerEvents: 'none' }} 
+      />
+
+      {/* Content - Top layer */}
+      <div className="relative min-h-screen" style={{ zIndex: 2 }}>
+        {/* Header */}
+        <div className="border-b border-white/20 bg-white/5 backdrop-blur-xl shadow-lg">
+          <div className="max-w-7xl mx-auto px-8 py-6">
+            <div className="flex items-center justify-between">
+              {/* Left: FasarliAI Title */}
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => router.push('/')}
+                  className="text-white hover:bg-white/20"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+                <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-cyan-500 to-teal-600 animate-pulse">
+                  FasarliAI
                 </h1>
-                <p className="text-sm text-gray-400 mt-1">Manage your account settings</p>
+                <div className="h-10 w-px bg-white/30"></div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Settings</h2>
+                  <p className="text-sm text-teal-200">Manage your account settings</p>
+                </div>
+              </div>
+              
+              {/* Right: Theme Toggle */}
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={toggleTheme}
+                  className="text-white hover:bg-white/20"
+                  title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                >
+                  {isDarkMode ? (
+                    <Sun className="w-5 h-5" />
+                  ) : (
+                    <Moon className="w-5 h-5" />
+                  )}
+                </Button>
               </div>
             </div>
-            
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={toggleTheme}
-              className="text-white hover:bg-white/10"
-              title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
-            >
-              {isDarkMode ? (
-                <Sun className="w-5 h-5" />
-              ) : (
-                <Moon className="w-5 h-5" />
-              )}
-            </Button>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-4xl mx-auto px-8 py-8 space-y-8">
-        {/* Profile Picture Section */}
-        <Card className="bg-gray-900/50 border-gray-800 dark:bg-gray-900/50 dark:border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Camera className="w-5 h-5 text-[#40e0d0]" />
-              Profile Picture
-            </CardTitle>
-            <CardDescription className="text-gray-400">
-              Upload a profile picture to personalize your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-6">
-              <div className="relative">
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt="Profile"
-                    className="w-24 h-24 rounded-full object-cover border-2 border-[#40e0d0]"
+        <div className="max-w-4xl mx-auto px-8 py-8 space-y-8">
+          {/* Profile Picture Section */}
+          <Card className="bg-white/90 dark:bg-teal-900/90 backdrop-blur-md border-white/20">
+            <CardHeader>
+              <CardTitle className="text-teal-600 dark:text-teal-400 flex items-center gap-2">
+                <Camera className="w-5 h-5" />
+                Profile Picture
+              </CardTitle>
+              <CardDescription>
+                Upload a profile picture to personalize your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-6">
+                <div className="relative">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt="Profile"
+                      className="w-24 h-24 rounded-full object-cover border-2 border-teal-500 dark:border-teal-400"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-white text-2xl font-bold border-2 border-teal-500 dark:border-teal-400">
+                      {(userData?.username || user?.email || 'U').charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingAvatar}
+                    className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-teal-500 dark:bg-teal-400 text-white flex items-center justify-center hover:bg-teal-600 dark:hover:bg-teal-500 transition-colors disabled:opacity-50 shadow-lg"
+                  >
+                    <Upload className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    JPG, PNG or WebP. Max size 5MB
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
                   />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#40e0d0] to-cyan-500 flex items-center justify-center text-white text-2xl font-bold border-2 border-[#40e0d0]">
-                    {(userData?.username || user?.email || 'U').charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingAvatar}
-                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#40e0d0] text-black flex items-center justify-center hover:bg-cyan-400 transition-colors disabled:opacity-50"
-                >
-                  <Upload className="w-4 h-4" />
-                </button>
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingAvatar}
+                    className="bg-teal-600 hover:bg-teal-700 text-white"
+                  >
+                    {isUploadingAvatar ? 'Uploading...' : 'Upload Photo'}
+                  </Button>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-400 mb-2">
-                  JPG, PNG or WebP. Max size 5MB
-                </p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/jpg,image/png,image/webp"
-                  onChange={handleAvatarUpload}
-                  className="hidden"
-                />
-                <Button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingAvatar}
-                  className="bg-[#40e0d0] text-black hover:bg-cyan-400"
-                >
-                  {isUploadingAvatar ? 'Uploading...' : 'Upload Photo'}
-                </Button>
+            </CardContent>
+          </Card>
+
+          {/* Username Section */}
+          <Card className="bg-white/90 dark:bg-teal-900/90 backdrop-blur-md border-white/20">
+            <CardHeader>
+              <CardTitle className="text-teal-600 dark:text-teal-400 flex items-center gap-2">
+                <UserIcon className="w-5 h-5" />
+                Username
+              </CardTitle>
+              <CardDescription>
+                Change your display username
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...usernameForm}>
+                <form onSubmit={usernameForm.handleSubmit(onUsernameSubmit)} className="space-y-4">
+                  <FormField
+                    control={usernameForm.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Username</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter your username"
+                            disabled={isLoading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading}
+                    className="bg-teal-600 hover:bg-teal-700 text-white"
+                  >
+                    {isLoading ? 'Updating...' : 'Update Username'}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+
+          {/* Account Information */}
+          <Card className="bg-white/90 dark:bg-teal-900/90 backdrop-blur-md border-white/20">
+            <CardHeader>
+              <CardTitle className="text-teal-600 dark:text-teal-400">Account Information</CardTitle>
+              <CardDescription>
+                Your account details
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Email</p>
+                <p className="text-sm text-foreground">{user.email}</p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">User ID</p>
+                <p className="text-sm text-foreground font-mono">{user.id}</p>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Username Section */}
-        <Card className="bg-gray-900/50 border-gray-800 dark:bg-gray-900/50 dark:border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <UserIcon className="w-5 h-5 text-[#40e0d0]" />
-              Username
-            </CardTitle>
-            <CardDescription className="text-gray-400">
-              Change your display username
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...usernameForm}>
-              <form onSubmit={usernameForm.handleSubmit(onUsernameSubmit)} className="space-y-4">
-                <FormField
-                  control={usernameForm.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Username</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter your username"
-                          disabled={isLoading}
-                          className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button 
-                  type="submit" 
-                  disabled={isLoading}
-                  className="bg-[#40e0d0] text-black hover:bg-cyan-400"
-                >
-                  {isLoading ? 'Updating...' : 'Update Username'}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+          {/* Change Password Section */}
+          <Card className="bg-white/90 dark:bg-teal-900/90 backdrop-blur-md border-white/20">
+            <CardHeader>
+              <CardTitle className="text-teal-600 dark:text-teal-400 flex items-center gap-2">
+                <Lock className="w-5 h-5" />
+                Change Password
+              </CardTitle>
+              <CardDescription>
+                Update your password to keep your account secure
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...passwordForm}>
+                <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                  <FormField
+                    control={passwordForm.control}
+                    name="currentPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Current Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            disabled={isLoading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        {/* Account Information */}
-        <Card className="bg-gray-900/50 border-gray-800 dark:bg-gray-900/50 dark:border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-white">Account Information</CardTitle>
-            <CardDescription className="text-gray-400">
-              Your account details
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="text-sm font-medium text-gray-300 mb-1">Email</p>
-              <p className="text-sm text-gray-400">{user.email}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-300 mb-1">User ID</p>
-              <p className="text-sm text-gray-400 font-mono">{user.id}</p>
-            </div>
-          </CardContent>
-        </Card>
+                  <FormField
+                    control={passwordForm.control}
+                    name="newPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>New Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            disabled={isLoading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        {/* Change Password Section */}
-        <Card className="bg-gray-900/50 border-gray-800 dark:bg-gray-900/50 dark:border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Lock className="w-5 h-5 text-[#40e0d0]" />
-              Change Password
-            </CardTitle>
-            <CardDescription className="text-gray-400">
-              Update your password to keep your account secure
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...passwordForm}>
-              <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                <FormField
-                  control={passwordForm.control}
-                  name="currentPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Current Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="••••••••"
-                          disabled={isLoading}
-                          className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={passwordForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirm New Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            disabled={isLoading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={passwordForm.control}
-                  name="newPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">New Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="••••••••"
-                          disabled={isLoading}
-                          className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading}
+                    className="bg-teal-600 hover:bg-teal-700 text-white"
+                  >
+                    {isLoading ? 'Updating...' : 'Update Password'}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
 
-                <FormField
-                  control={passwordForm.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Confirm New Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="••••••••"
-                          disabled={isLoading}
-                          className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button 
-                  type="submit" 
-                  disabled={isLoading}
-                  className="bg-[#40e0d0] text-black hover:bg-cyan-400"
-                >
-                  {isLoading ? 'Updating...' : 'Update Password'}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-
-        {/* Danger Zone */}
-        <Card className="bg-gray-900/50 border-red-900/50 dark:bg-gray-900/50 dark:border-red-900/50">
-          <CardHeader>
-            <CardTitle className="text-red-400">Danger Zone</CardTitle>
-            <CardDescription className="text-gray-400">
-              Irreversible account actions
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              variant="destructive" 
-              onClick={() => signOut()}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Sign Out
-            </Button>
-          </CardContent>
-        </Card>
+          {/* Danger Zone */}
+          <Card className="bg-white/90 dark:bg-teal-900/90 backdrop-blur-md border-red-500/30">
+            <CardHeader>
+              <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
+              <CardDescription>
+                Irreversible account actions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                variant="destructive" 
+                onClick={() => signOut()}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Sign Out
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )
