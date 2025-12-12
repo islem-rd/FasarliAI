@@ -86,9 +86,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Redirection forcée vers la production uniquement
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: 'https://fasarliai.vercel.app/',
-      },
     })
     return { error }
   }
