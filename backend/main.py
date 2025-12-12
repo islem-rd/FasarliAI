@@ -37,41 +37,41 @@ async def send_mfa_email(recipient: str, code: str, subject: str = "Your Login V
             print(f"[INFO] Brevo not configured. MFA code for {recipient}: {code}")
             return False
         
-                configuration = sib_api_v3_sdk.Configuration()
-                configuration.api_key['api-key'] = BREVO_API_KEY
+        configuration = sib_api_v3_sdk.Configuration()
+        configuration.api_key['api-key'] = BREVO_API_KEY
 
-                api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
 
-                # Modern HTML email design matching FasarliAI branding
-                html_content = f"""
-                <div style='background:linear-gradient(135deg,#1e293b 0%,#0ea5e9 100%);padding:40px 0;font-family:Segoe UI,Roboto,sans-serif;'>
-                    <div style='max-width:420px;margin:0 auto;background:#fff;border-radius:18px;box-shadow:0 4px 24px #0001;padding:32px 28px 28px 28px;'>
-                        <div style='text-align:center;margin-bottom:18px;'>
-                            <img src='https://fasarliai.com/logo.png' alt='FasarliAI' style='height:48px;margin-bottom:8px;'>
-                            <h2 style='color:#0ea5e9;font-weight:700;margin:0 0 8px 0;font-size:1.5rem;'>FasarliAI</h2>
-                        </div>
-                        <h3 style='color:#1e293b;font-size:1.15rem;font-weight:600;margin-bottom:12px;text-align:center;'>Votre code de vérification</h3>
-                        <div style='background:#f1f5f9;border-radius:10px;padding:18px 0;margin:0 auto 18px auto;text-align:center;font-size:2rem;letter-spacing:0.2em;color:#0ea5e9;font-weight:700;width:220px;'>
-                            {code}
-                        </div>
-                        <p style='color:#334155;font-size:1rem;margin-bottom:10px;text-align:center;'>Ce code expire dans <b>3 minutes</b>.<br>Ne partagez jamais ce code avec qui que ce soit.</p>
-                        <div style='margin-top:24px;text-align:center;'>
-                            <a href='https://fasarliai.com' style='display:inline-block;padding:10px 24px;background:#0ea5e9;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:1rem;'>Accéder à FasarliAI</a>
-                        </div>
-                    </div>
-                    <p style='text-align:center;color:#cbd5e1;font-size:0.95rem;margin-top:32px;'>© {datetime.now().year} FasarliAI. Tous droits réservés.</p>
+        # Modern HTML email design matching FasarliAI branding
+        html_content = f"""
+        <div style='background:linear-gradient(135deg,#1e293b 0%,#0ea5e9 100%);padding:40px 0;font-family:Segoe UI,Roboto,sans-serif;'>
+            <div style='max-width:420px;margin:0 auto;background:#fff;border-radius:18px;box-shadow:0 4px 24px #0001;padding:32px 28px 28px 28px;'>
+                <div style='text-align:center;margin-bottom:18px;'>
+                    <img src='https://fasarliai.com/logo.png' alt='FasarliAI' style='height:48px;margin-bottom:8px;'>
+                    <h2 style='color:#0ea5e9;font-weight:700;margin:0 0 8px 0;font-size:1.5rem;'>FasarliAI</h2>
                 </div>
-                """
-                send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
-                        to=[{"email": recipient}],
-                        sender={"email": FROM_EMAIL, "name": FROM_NAME},
-                        subject=subject,
-                        html_content=html_content
-                )
+                <h3 style='color:#1e293b;font-size:1.15rem;font-weight:600;margin-bottom:12px;text-align:center;'>Votre code de vérification</h3>
+                <div style='background:#f1f5f9;border-radius:10px;padding:18px 0;margin:0 auto 18px auto;text-align:center;font-size:2rem;letter-spacing:0.2em;color:#0ea5e9;font-weight:700;width:220px;'>
+                    {code}
+                </div>
+                <p style='color:#334155;font-size:1rem;margin-bottom:10px;text-align:center;'>Ce code expire dans <b>3 minutes</b>.<br>Ne partagez jamais ce code avec qui que ce soit.</p>
+                <div style='margin-top:24px;text-align:center;'>
+                    <a href='https://fasarliai.com' style='display:inline-block;padding:10px 24px;background:#0ea5e9;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:1rem;'>Accéder à FasarliAI</a>
+                </div>
+            </div>
+            <p style='text-align:center;color:#cbd5e1;font-size:0.95rem;margin-top:32px;'>© {datetime.now().year} FasarliAI. Tous droits réservés.</p>
+        </div>
+        """
+        send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient}],
+            sender={"email": FROM_EMAIL, "name": FROM_NAME},
+            subject=subject,
+            html_content=html_content
+        )
 
-                api_instance.send_transac_email(send_smtp_email)
-                print(f"[INFO] MFA email sent successfully to {recipient}")
-                return True
+        api_instance.send_transac_email(send_smtp_email)
+        print(f"[INFO] MFA email sent successfully to {recipient}")
+        return True
         
     except ApiException as e:
         print(f"[WARN] Unable to send MFA email to {recipient}: {e}")
