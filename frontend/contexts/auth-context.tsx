@@ -83,10 +83,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signInWithGoogle = async () => {
+    // Redirection dynamique selon l'environnement
+    let redirectTo = 'https://fasarliai.vercel.app/';
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      redirectTo = 'http://localhost:3000/';
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `https://fasarliai.vercel.app/`,
+        redirectTo,
       },
     })
     return { error }
