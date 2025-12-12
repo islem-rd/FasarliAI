@@ -82,13 +82,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error }
   }
 
-  const signInWithGoogle = async () => {
-    // Redirection forcée vers la production uniquement
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    })
-    return { error }
-  }
 
   const signOut = async () => {
     await supabase.auth.signOut()
@@ -105,7 +98,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         signUp,
         signIn,
-        signInWithGoogle,
         verifyPassword,
         signOut,
       }}
