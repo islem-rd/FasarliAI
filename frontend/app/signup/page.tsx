@@ -205,7 +205,6 @@ export default function SignUpPage() {
           </form>
         </Form>
 
-
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Already have an account? </span>
           <Link

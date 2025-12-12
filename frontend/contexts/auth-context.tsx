@@ -11,7 +11,6 @@ interface AuthContextType {
   loading: boolean
   signUp: (email: string, password: string, username?: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
-  signInWithGoogle: () => Promise<{ error: any }>
   verifyPassword: (email: string, password: string) => Promise<{ valid: boolean; error?: any }>
   signOut: () => Promise<void>
 }
@@ -81,7 +80,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     return { error }
   }
-
 
   const signOut = async () => {
     await supabase.auth.signOut()
