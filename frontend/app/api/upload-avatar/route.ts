@@ -187,10 +187,44 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error('Error updating user avatar_url:', updateError)
+      console.error('Error details:', JSON.stringify(updateError, null, 2))
+      
+      // Check if it's a column not found error
+      if (updateError.message?.includes('column') && (updateError.message?.includes('does not exist') || updateError.message?.includes('not found'))) {
+        // Try to delete the uploaded file
+        await supabase.storage.from('avatars').remove([filePath])
+        return NextResponse.json(
+          { 
+            error: 'Database column "avatar_url" not found. Please run migration 004_ensure_user_columns.sql in Supabase SQL Editor.',
+            errorCode: 'COLUMN_NOT_FOUND',
+            details: updateError.message
+          },
+          { status: 500 }
+        )
+      }
+      
+      // Check if it's a permission error
+      if (updateError.message?.includes('permission') || updateError.message?.includes('policy')) {
+        // Try to delete the uploaded file
+        await supabase.storage.from('avatars').remove([filePath])
+        return NextResponse.json(
+          { 
+            error: 'Permission denied. Please check Row Level Security policies on the users table.',
+            errorCode: 'PERMISSION_DENIED',
+            details: updateError.message
+          },
+          { status: 500 }
+        )
+      }
+      
       // Try to delete the uploaded file
       await supabase.storage.from('avatars').remove([filePath])
       return NextResponse.json(
-        { error: 'Failed to update user profile' },
+        { 
+          error: 'Failed to update user profile: ' + (updateError.message || 'Unknown error'),
+          errorCode: 'UPDATE_FAILED',
+          details: updateError.message
+        },
         { status: 500 }
       )
     }
