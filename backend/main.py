@@ -37,9 +37,9 @@ async def send_mfa_email(recipient: str, code: str, subject: str = "Your Login V
             print(f"[INFO] Brevo not configured. MFA code for {recipient}: {code}")
             return False
         
-        configuration = sib_api_v3_sdk.Configuration()
-        configuration.api_key['api-key'] = BREVO_API_KEY
-        
+                configuration = sib_api_v3_sdk.Configuration()
+                configuration.api_key['api-key'] = BREVO_API_KEY
+
                 api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
 
                 # Modern HTML email design matching FasarliAI branding
