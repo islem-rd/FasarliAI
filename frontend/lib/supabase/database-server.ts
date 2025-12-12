@@ -220,3 +220,68 @@ export async function getPDFByConversationServer(request: NextRequest, conversat
   return { data, error }
 }
 
+export async function updateUserServer(
+  request: NextRequest,
+  userId: string,
+  updates: { username?: string; avatar_url?: string }
+) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll() {
+          // Cookies are handled by middleware
+        },
+      },
+    }
+  )
+  
+  // Only update fields that are provided
+  const updateData: any = {}
+  if (updates.username !== undefined) {
+    updateData.username = updates.username
+  }
+  if (updates.avatar_url !== undefined) {
+    updateData.avatar_url = updates.avatar_url
+  }
+  
+  const { data, error } = await supabase
+    .from('users')
+    .update(updateData)
+    .eq('id', userId)
+    .select('id, email, username, avatar_url, created_at, updated_at')
+    .single()
+
+  return { data, error }
+}
+
+export async function getUserServer(request: NextRequest, userId: string) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll() {
+          // Cookies are handled by middleware
+        },
+      },
+    }
+  )
+  
+  // Explicitly select columns to avoid schema cache issues
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, email, username, avatar_url, created_at, updated_at')
+    .eq('id', userId)
+    .single()
+
+  return { data, error }
+}
+

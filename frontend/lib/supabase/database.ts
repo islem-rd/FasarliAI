@@ -40,9 +40,28 @@ export interface ChatMessage {
 
 export async function createUser(userId: string, email: string, username?: string) {
   const supabase = createClient()
+  
+  // First, ensure the user record exists with all required columns
+  const { data: existingUser } = await supabase
+    .from('users')
+    .select('id, email, username, avatar_url')
+    .eq('id', userId)
+    .single()
+  
+  if (existingUser) {
+    // User exists, just return it
+    return { data: existingUser, error: null }
+  }
+  
+  // Create new user with all columns
   const { data, error } = await supabase
     .from('users')
-    .insert({ id: userId, email, username: username || null })
+    .insert({ 
+      id: userId, 
+      email, 
+      username: username || null,
+      avatar_url: null
+    })
     .select()
     .single()
 
@@ -55,12 +74,36 @@ export async function createUser(userId: string, email: string, username?: strin
 
 export async function updateUser(userId: string, updates: { username?: string; avatar_url?: string }) {
   const supabase = createClient()
+  
+  // Only update fields that are provided
+  const updateData: any = {}
+  if (updates.username !== undefined) {
+    updateData.username = updates.username
+  }
+  if (updates.avatar_url !== undefined) {
+    updateData.avatar_url = updates.avatar_url
+  }
+  
   const { data, error } = await supabase
     .from('users')
-    .update(updates)
+    .update(updateData)
     .eq('id', userId)
-    .select()
+    .select('id, email, username, avatar_url, created_at, updated_at')
     .single()
+
+  if (error) {
+    console.error('Error updating user:', error)
+    // If column doesn't exist, return a helpful error
+    if (error.message?.includes('column') && (error.message?.includes('does not exist') || error.message?.includes('not found'))) {
+      return { 
+        data: null, 
+        error: { 
+          message: 'Database column missing. Please run migration 004_ensure_user_columns.sql in Supabase.',
+          code: 'COLUMN_NOT_FOUND'
+        } 
+      }
+    }
+  }
 
   return { data, error }
 }
@@ -70,11 +113,38 @@ export const createUserProfile = createUser
 
 export async function getUser(userId: string) {
   const supabase = createClient()
+  
+  // Explicitly select columns to avoid schema cache issues
   const { data, error } = await supabase
     .from('users')
-    .select('*')
+    .select('id, email, username, avatar_url, created_at, updated_at')
     .eq('id', userId)
     .single()
+
+  if (error) {
+    console.error('Error fetching user:', error)
+    // If column doesn't exist, try with minimal columns
+    if (error.message?.includes('column') && (error.message?.includes('does not exist') || error.message?.includes('not found'))) {
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('users')
+        .select('id, email, created_at, updated_at')
+        .eq('id', userId)
+        .single()
+      
+      if (fallbackData) {
+        // Return with null for missing columns
+        return { 
+          data: { 
+            ...fallbackData, 
+            username: null, 
+            avatar_url: null 
+          }, 
+          error: null 
+        }
+      }
+      return { data: null, error: fallbackError }
+    }
+  }
 
   return { data, error }
 }

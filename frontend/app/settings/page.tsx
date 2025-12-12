@@ -18,7 +18,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/auth-context'
-import { getUser, updateUser } from '@/lib/supabase/database'
+import { getUser } from '@/lib/supabase/database'
 import { Sun, Moon, ArrowLeft, Upload, User as UserIcon, Lock, Camera } from 'lucide-react'
 
 const changePasswordSchema = z.object({
@@ -205,16 +205,24 @@ export default function SettingsPage() {
     
     setIsLoading(true)
     try {
-      const { data, error } = await updateUser(user.id, {
-        username: values.username,
+      const response = await fetch('/api/update-username', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: values.username,
+        }),
       })
 
-      if (error) {
-        toast.error(error.message || 'Failed to update username')
+      const data = await response.json()
+
+      if (!response.ok) {
+        toast.error(data.error || 'Failed to update username')
         return
       }
 
-      setUserData(data)
+      setUserData(data.user)
       toast.success('Username updated successfully!')
     } catch (error: any) {
       toast.error(error.message || 'An unexpected error occurred')
