@@ -152,7 +152,20 @@ export default function SettingsPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        toast.error(data.error || 'Failed to upload avatar')
+        // Show error with instructions if available
+        const errorMessage = data.error || 'Failed to upload avatar'
+        const instructions = data.instructions || data.quickFix
+        
+        if (instructions) {
+          // Show main error
+          toast.error(errorMessage)
+          // Show detailed instructions after a short delay
+          setTimeout(() => {
+            toast.error(instructions, { duration: 10000 })
+          }, 500)
+        } else {
+          toast.error(errorMessage)
+        }
         return
       }
 
