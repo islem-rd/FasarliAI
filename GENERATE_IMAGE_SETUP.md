@@ -18,9 +18,12 @@ La fonctionnalité de génération d'images utilise **Hugging Face Inference API
 3. Allez dans **Settings** → **Access Tokens** → [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
 4. Cliquez sur **New token**
 5. Donnez un nom (ex: "FasarliAI")
-6. Sélectionnez **Read** (lecture seule suffit)
-7. Cliquez sur **Generate token**
-8. **Copiez le token** (il commence par `hf_...`)
+6. Sélectionnez **Read** (lecture seule suffit pour l'API Inference)
+7. **Important** : Acceptez les termes d'utilisation de l'API Inference si demandé
+8. Cliquez sur **Generate token**
+9. **Copiez le token** (il commence par `hf_...`)
+
+**Note** : Si vous obtenez une erreur 403, assurez-vous d'avoir accepté les conditions d'utilisation de l'API Inference dans vos paramètres Hugging Face.
 
 ### Étape 2 : Ajouter le token dans votre backend
 

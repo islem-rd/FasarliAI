@@ -707,7 +707,7 @@ Create a detailed, visual description suitable for image generation. Be specific
                 # Use original prompt if enhancement fails
                 pass
         
-        # Hugging Face token is now required for the new router API
+        # Hugging Face token is required for the Inference API
         hf_token = os.getenv("HUGGINGFACE_API_TOKEN", "")
         if not hf_token:
             raise HTTPException(
@@ -720,10 +720,10 @@ Create a detailed, visual description suitable for image generation. Be specific
             "Content-Type": "application/json"
         }
         
-        # Use Hugging Face Inference API - FREE Stable Diffusion model
-        # Updated endpoint format: router.huggingface.co/hf-inference/models/{model_id}
+        # Use Hugging Face Inference API directly (not router)
+        # Direct endpoint works better with standard tokens
         # Model: runwayml/stable-diffusion-v1-5
-        api_url = "https://router.huggingface.co/hf-inference/models/runwayml/stable-diffusion-v1-5"
+        api_url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
         
         payload = {
             "inputs": enhanced_prompt,
@@ -760,6 +760,11 @@ Create a detailed, visual description suitable for image generation. Be specific
                 raise HTTPException(
                     status_code=401,
                     detail="Unauthorized. Please check your HUGGINGFACE_API_TOKEN is valid. Get a free token at https://huggingface.co/settings/tokens"
+                )
+            elif response.status_code == 403:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Permission denied. Please create a new token with 'Read' permissions (or 'Write' if needed) at https://huggingface.co/settings/tokens. Make sure to accept the terms of service for Inference API."
                 )
             elif response.status_code == 503:
                 raise HTTPException(
