@@ -9,6 +9,7 @@ interface Message {
   timestamp: string
   content: string
   sources?: Array<{ title: string; description: string; url?: string }>
+  imageUrl?: string
 }
 
 interface SessionContextType {
