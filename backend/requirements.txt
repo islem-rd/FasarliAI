@@ -27,7 +27,7 @@ beautifulsoup4  # HTML parsing for web scraping
 requests  # HTTP requests for web scraping
 duckduckgo-search  # DuckDuckGo search API for finding sources
 
-# Image Generation (Free)
-huggingface-hub  # Official Hugging Face client for Inference API
-Pillow  # Image processing for PIL Image support
+# Image Generation (Free - Stability AI)
+stability-sdk  # Stability AI SDK for image generation (free tier available)
+requests  # HTTP requests (already included)
 
