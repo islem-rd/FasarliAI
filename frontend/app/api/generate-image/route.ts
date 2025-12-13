@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
                 conversation_id,
                 user.id,
                 'assistant',
-                `🎨 Image generated for: "${prompt}"`,
+                `Image generated for: "${prompt}"`,
                 null,
                 storedImageUrl
               )

@@ -47,7 +47,12 @@ async def send_mfa_email(recipient: str, code: str, subject: str = "Your Login V
         <div style='background:linear-gradient(135deg,#000000 0%,#40e0d0 100%);padding:40px 0;font-family:Segoe UI,Roboto,sans-serif;'>
             <div style='max-width:420px;margin:0 auto;background:#fff;border-radius:18px;box-shadow:0 4px 24px #0001;padding:32px 28px 28px 28px;'>
                 <div style='text-align:center;margin-bottom:18px;'>
-                    <img src='https://fasarliai.com/logo.png' alt='FasarliAI' style='height:48px;margin-bottom:8px;'>
+                    <div style='width:48px;height:48px;margin:0 auto 8px auto;background:linear-gradient(135deg,#40e0d0 0%,#20b2aa 100%);border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(64,224,208,0.3);'>
+                        <svg width='32' height='32' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                            <path d='M12 2L2 7L12 12L22 7L12 2Z' fill='white'/>
+                            <path d='M2 17L12 22L22 17V12L12 17L2 12V17Z' fill='white'/>
+                        </svg>
+                    </div>
                     <h2 style='color:#40e0d0;font-weight:700;margin:0 0 8px 0;font-size:1.5rem;'>FasarliAI</h2>
                 </div>
                 <h3 style='color:#000000;font-size:1.15rem;font-weight:600;margin-bottom:12px;text-align:center;'>Votre code de vérification</h3>

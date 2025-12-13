@@ -514,21 +514,54 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Danger Zone */}
+          {/* Account Management */}
           <Card className="bg-white/90 dark:bg-teal-900/90 backdrop-blur-md border-red-500/30">
             <CardHeader>
-              <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
+              <CardTitle className="text-red-600 dark:text-red-400">Account Management</CardTitle>
               <CardDescription>
-                Irreversible account actions
+                Permanently delete your account and all associated data. This action cannot be undone.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button 
                 variant="destructive" 
-                onClick={() => signOut()}
+                onClick={async () => {
+                  if (!confirm('Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data, conversations, and files will be permanently deleted.')) {
+                    return
+                  }
+                  
+                  if (!confirm('This is your last chance. Are you absolutely sure you want to delete your account?')) {
+                    return
+                  }
+
+                  setIsLoading(true)
+                  try {
+                    const response = await fetch('/api/delete-account', {
+                      method: 'DELETE',
+                    })
+
+                    const data = await response.json()
+
+                    if (!response.ok) {
+                      toast.error(data.error || 'Failed to delete account')
+                      setIsLoading(false)
+                      return
+                    }
+
+                    toast.success('Account deleted successfully')
+                    // Redirect to signin after a short delay
+                    setTimeout(() => {
+                      router.push('/signin')
+                    }, 2000)
+                  } catch (error: any) {
+                    toast.error('An unexpected error occurred')
+                    setIsLoading(false)
+                  }
+                }}
+                disabled={isLoading}
                 className="bg-red-600 hover:bg-red-700"
               >
-                Sign Out
+                {isLoading ? 'Deleting Account...' : 'Delete Account'}
               </Button>
             </CardContent>
           </Card>

@@ -171,7 +171,7 @@ export function QuizPanel() {
                           ? 'border-red-500 bg-red-50 text-red-700 dark:bg-red-900/20'
                           : ''
                         : isSelected
-                        ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20'
+                        ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/40 dark:text-teal-200'
                         : ''
                     }`}
                     onClick={() => handleAnswerSelect(option)}

@@ -401,7 +401,7 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
       author: 'You',
       avatar: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/avatar-user.jpg',
       timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      content: `🎨 Generate image: ${prompt}`,
+      content: `Generate image: ${prompt}`,
     }
     setMessages((prev: Message[]) => [...prev, userMessage])
 
@@ -446,7 +446,7 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
                 author: 'FasarliAI',
                 avatar: '⚡',
                 timestamp: data.timestamp || new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                content: `🎨 Image generated for: "${prompt}"`,
+                content: `Image generated for: "${prompt}"`,
                 imageUrl: data.image_url,
               }
             : msg
