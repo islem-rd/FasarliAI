@@ -715,7 +715,8 @@ Create a detailed, visual description suitable for image generation. Be specific
         
         # Use Hugging Face Inference API - FREE Stable Diffusion model
         # Model: runwayml/stable-diffusion-v1-5 (free, no token required)
-        api_url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+        # Updated endpoint: router.huggingface.co (api-inference.huggingface.co is deprecated)
+        api_url = "https://router.huggingface.co/models/runwayml/stable-diffusion-v1-5"
         
         payload = {
             "inputs": enhanced_prompt,
