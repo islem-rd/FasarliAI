@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/supabase/server-auth'
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { updateUserServer } from '@/lib/supabase/database-server'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -71,16 +72,88 @@ export async function POST(request: NextRequest) {
     // Check if bucket exists by trying to list it
     const { data: buckets, error: bucketError } = await supabase.storage.listBuckets()
     
-    if (bucketError) {
-      console.error('Error checking buckets:', bucketError)
-    } else {
-      const avatarsBucket = buckets?.find(b => b.id === 'avatars')
+    let avatarsBucket = buckets?.find(b => b.id === 'avatars')
+    
+    // If bucket doesn't exist, try to create it automatically
+    if (!avatarsBucket) {
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      
+      if (serviceRoleKey && supabaseUrl) {
+        try {
+          // Create admin client with service role key
+          const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+            auth: {
+              autoRefreshToken: false,
+              persistSession: false
+            }
+          })
+          
+          // Try to create bucket using Supabase Storage API
+          // Note: Supabase doesn't expose bucket creation via JS client, so we'll use REST API
+          // Extract project reference from URL for Management API
+          const urlMatch = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
+          const projectRef = urlMatch?.[1]
+          
+          if (projectRef) {
+            // Try using Storage Management API endpoint
+            // This requires the project to have the Management API enabled
+            try {
+              const mgmtResponse = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/storage/buckets`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${serviceRoleKey}`,
+                  'apikey': serviceRoleKey
+                },
+                body: JSON.stringify({
+                  id: 'avatars',
+                  name: 'avatars',
+                  public: true,
+                  file_size_limit: 5242880,
+                  allowed_mime_types: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+                })
+              })
+              
+              if (mgmtResponse.ok || mgmtResponse.status === 409) {
+                // Verify bucket was created
+                const { data: newBuckets } = await supabaseAdmin.storage.listBuckets()
+                avatarsBucket = newBuckets?.find(b => b.id === 'avatars')
+              }
+            } catch (mgmtError) {
+              // Management API might not be available, try alternative method
+              console.log('Management API not available, will provide manual instructions')
+            }
+          }
+          
+          // If still not created, try one more time with direct PostgREST
+          if (!avatarsBucket) {
+            // Last attempt: verify bucket wasn't created in the meantime
+            const { data: newBuckets } = await supabaseAdmin.storage.listBuckets()
+            avatarsBucket = newBuckets?.find(b => b.id === 'avatars')
+          }
+        } catch (createError: any) {
+          console.error('Error attempting to create bucket automatically:', createError)
+        }
+      }
+      
+      // If bucket still doesn't exist, return helpful error with setup instructions
       if (!avatarsBucket) {
         return NextResponse.json(
           { 
-            error: 'Storage bucket "avatars" not found. Please run migration 005_create_avatars_bucket.sql in Supabase SQL Editor.',
+            error: 'Storage bucket "avatars" not found. Please create it in Supabase Dashboard.',
             errorCode: 'BUCKET_NOT_FOUND',
-            instructions: 'Go to Supabase Dashboard → SQL Editor → Run the SQL from backend/supabase/migrations/005_create_avatars_bucket.sql'
+            instructions: [
+              'Go to Supabase Dashboard → Storage → New bucket',
+              'Name: "avatars"',
+              'Public: true',
+              'File size limit: 5242880 (5MB)',
+              'Allowed MIME types: image/jpeg, image/jpg, image/png, image/webp',
+              '',
+              'Or run the SQL migration:',
+              'Go to Supabase Dashboard → SQL Editor → Run: backend/supabase/migrations/005_create_avatars_bucket.sql'
+            ].join('\n'),
+            quickFix: 'Create bucket in Supabase Dashboard: Storage → New bucket → Name: "avatars", Public: true'
           },
           { status: 500 }
         )
