@@ -755,19 +755,39 @@ Create a detailed, visual description suitable for image generation. Be specific
                 )
         
         # Convert image to bytes if it's a PIL Image
-        from PIL import Image
-        if isinstance(image_bytes, Image.Image):
-            # Convert PIL Image to bytes
-            img_buffer = BytesIO()
-            image_bytes.save(img_buffer, format='PNG')
-            image_bytes = img_buffer.getvalue()
-        elif not isinstance(image_bytes, bytes):
-            # If it's not bytes, try to convert
-            image_bytes = bytes(image_bytes)
+        try:
+            from PIL import Image
+            if isinstance(image_bytes, Image.Image):
+                # Convert PIL Image to bytes
+                img_buffer = BytesIO()
+                image_bytes.save(img_buffer, format='PNG')
+                image_bytes = img_buffer.getvalue()
+            elif not isinstance(image_bytes, bytes):
+                # If it's not bytes, try to convert
+                image_bytes = bytes(image_bytes)
+        except ImportError as pil_error:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Pillow library not installed: {str(pil_error)}. Run: pip install Pillow"
+            )
+        except Exception as conv_error:
+            print(f"[ERROR] Error converting image: {conv_error}")
+            print(f"[ERROR] Image type: {type(image_bytes)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error processing generated image: {str(conv_error)}"
+            )
         
         # Convert to base64 data URL for frontend
-        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
-        image_url = f"data:image/png;base64,{image_base64}"
+        try:
+            image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+            image_url = f"data:image/png;base64,{image_base64}"
+        except Exception as base64_error:
+            print(f"[ERROR] Error encoding image to base64: {base64_error}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error encoding image: {str(base64_error)}"
+            )
         
         return GenerateImageResponse(
             image_url=image_url,
@@ -775,21 +795,36 @@ Create a detailed, visual description suitable for image generation. Be specific
             timestamp=datetime.now().isoformat()
         )
         
-    except ImportError:
+    except ImportError as import_err:
+        import traceback
+        print(f"[ERROR] Import error: {import_err}")
+        print(f"[ERROR] Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=500, 
-            detail="huggingface_hub library not installed. Run: pip install huggingface-hub"
+            detail=f"Required library not installed: {str(import_err)}. Install with: pip install huggingface-hub Pillow"
         )
+    except HTTPException:
+        # Re-raise HTTPException as is (already properly formatted)
+        raise
     except Exception as e:
-        print(f"[ERROR] Image generation failed: {e}")
-        error_str = str(e)
+        import traceback
+        error_str = str(e) if e else "Unknown error"
+        error_traceback = traceback.format_exc()
+        
+        print(f"[ERROR] Image generation failed: {error_str}")
+        print(f"[ERROR] Full traceback:\n{error_traceback}")
+        
         # Handle timeout errors
         if "timeout" in error_str.lower() or "timed out" in error_str.lower():
             raise HTTPException(status_code=504, detail="Image generation timed out. Please try again.")
-        # Re-raise HTTPException as is
-        if isinstance(e, HTTPException):
-            raise e
-        raise HTTPException(status_code=500, detail=f"Failed to generate image: {error_str[:200]}")
+        
+        # Provide detailed error message
+        if error_str:
+            error_detail = f"Failed to generate image: {error_str[:300]}"
+        else:
+            error_detail = "Failed to generate image: Unknown error occurred. Check backend logs for details."
+        
+        raise HTTPException(status_code=500, detail=error_detail)
 
 # Password Reset Endpoints
 @app.post("/api/users/forgot-password")
