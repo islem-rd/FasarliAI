@@ -1,3 +1,14 @@
+'use client'
+
+import { useState } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+
 interface MessageBubbleProps {
   author: string
   avatar: string
@@ -63,6 +74,7 @@ function formatContent(content: string) {
 }
 
 export function MessageBubble({ author, avatar, timestamp, content, imageUrl }: MessageBubbleProps) {
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const isUser = author === 'You'
   const isLoading = content === '⚡'
 
@@ -111,14 +123,36 @@ export function MessageBubble({ author, avatar, timestamp, content, imageUrl }: 
             <div className="text-sm leading-relaxed whitespace-pre-wrap">
               {formatContent(content)}
               {imageUrl && (
-                <div className="mt-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                  <img
-                    src={imageUrl}
-                    alt="Generated image"
-                    className="w-full h-auto max-w-md"
-                    loading="lazy"
-                  />
-                </div>
+                <>
+                  <div className="mt-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setIsImageModalOpen(true)}>
+                    <img
+                      src={imageUrl}
+                      alt="Generated image"
+                      className="w-full h-auto max-w-md"
+                      loading="lazy"
+                    />
+                  </div>
+                  <Dialog open={isImageModalOpen} onOpenChange={setIsImageModalOpen}>
+                    <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 bg-transparent border-none shadow-none" showCloseButton={false}>
+                      <div className="relative w-full h-full flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                        <img
+                          src={imageUrl}
+                          alt="Generated image - Full size"
+                          className="max-w-full max-h-[95vh] w-auto h-auto object-contain"
+                        />
+                        <button
+                          onClick={() => setIsImageModalOpen(false)}
+                          className="absolute top-4 right-4 bg-black/70 hover:bg-black/90 text-white rounded-full p-2 transition-colors z-10"
+                          aria-label="Fermer"
+                        >
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </>
               )}
             </div>
           )}
