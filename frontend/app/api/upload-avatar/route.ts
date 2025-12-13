@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/supabase/server-auth'
 import { createServerClient } from '@supabase/ssr'
-import { createClient } from '@supabase/supabase-js'
 import { updateUserServer } from '@/lib/supabase/database-server'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -117,9 +116,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    const { data } = supabase.storage
       .from('avatars')
       .getPublicUrl(filePath)
+    const publicUrl = data.publicUrl
 
     // Update user record with avatar URL using server function
     const { data: updatedUser, error: updateError } = await updateUserServer(request, user.id, {
