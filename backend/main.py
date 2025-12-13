@@ -707,16 +707,23 @@ Create a detailed, visual description suitable for image generation. Be specific
                 # Use original prompt if enhancement fails
                 pass
         
-        # Optional: Use Hugging Face token for higher rate limits (not required for free tier)
+        # Hugging Face token is now required for the new router API
         hf_token = os.getenv("HUGGINGFACE_API_TOKEN", "")
-        headers = {}
-        if hf_token:
-            headers["Authorization"] = f"Bearer {hf_token}"
+        if not hf_token:
+            raise HTTPException(
+                status_code=500,
+                detail="HUGGINGFACE_API_TOKEN is required. Get a free token at https://huggingface.co/settings/tokens"
+            )
+        
+        headers = {
+            "Authorization": f"Bearer {hf_token}",
+            "Content-Type": "application/json"
+        }
         
         # Use Hugging Face Inference API - FREE Stable Diffusion model
-        # Model: runwayml/stable-diffusion-v1-5 (free, no token required)
-        # Updated endpoint: router.huggingface.co (api-inference.huggingface.co is deprecated)
-        api_url = "https://router.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+        # Updated endpoint format: router.huggingface.co/hf-inference/models/{model_id}
+        # Model: runwayml/stable-diffusion-v1-5
+        api_url = "https://router.huggingface.co/hf-inference/models/runwayml/stable-diffusion-v1-5"
         
         payload = {
             "inputs": enhanced_prompt,
@@ -727,25 +734,43 @@ Create a detailed, visual description suitable for image generation. Be specific
         }
         
         # Make request to Hugging Face API
-        response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+        try:
+            response = requests.post(api_url, headers=headers, json=payload, timeout=90)
+        except requests.exceptions.Timeout:
+            raise HTTPException(status_code=504, detail="Image generation timed out. Please try again.")
         
         if response.status_code == 503:
             # Model is loading, wait and retry
             import time
             time.sleep(10)
-            response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+            response = requests.post(api_url, headers=headers, json=payload, timeout=90)
         
         if not response.ok:
             error_msg = response.text
-            if response.status_code == 503:
+            # Try to extract JSON error message
+            try:
+                import json
+                error_json = json.loads(error_msg)
+                if isinstance(error_json, dict) and "error" in error_json:
+                    error_msg = error_json["error"]
+            except:
+                pass
+            
+            if response.status_code == 401:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Unauthorized. Please check your HUGGINGFACE_API_TOKEN is valid. Get a free token at https://huggingface.co/settings/tokens"
+                )
+            elif response.status_code == 503:
                 raise HTTPException(
                     status_code=503, 
                     detail="Model is loading. Please try again in a few seconds."
                 )
-            raise HTTPException(
-                status_code=response.status_code,
-                detail=f"Hugging Face API error: {error_msg}"
-            )
+            else:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Hugging Face API error ({(response.status_code)}): {error_msg[:200]}"
+                )
         
         # Get image bytes
         image_bytes = response.content

@@ -4,31 +4,41 @@ La fonctionnalité de génération d'images utilise **Hugging Face Inference API
 
 ## ✅ Solution 100% Gratuite
 
-- **Aucune clé API requise** pour commencer
+- **Token Hugging Face gratuit requis** (gratuit à obtenir)
 - **Gratuit** pour un usage modéré
 - **Stable Diffusion v1.5** - modèle de qualité professionnelle
 - **Pas de limite de crédit** (rate limits généreux)
 
-## Configuration (Optionnelle)
+## Configuration Requise
 
-### Option 1 : Sans token (Recommandé pour débuter)
-**Aucune configuration nécessaire !** Le système fonctionne directement sans token.
-
-### Option 2 : Avec token Hugging Face (Pour plus de requêtes)
-
-Si vous avez besoin de plus de requêtes par minute :
+### Étape 1 : Obtenir un token Hugging Face (GRATUIT)
 
 1. Allez sur [huggingface.co](https://huggingface.co)
-2. Créez un compte gratuit
-3. Allez dans **Settings** → **Access Tokens**
-4. Créez un nouveau token (lecture seule suffit)
+2. Créez un compte gratuit (si vous n'en avez pas)
+3. Allez dans **Settings** → **Access Tokens** → [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
+4. Cliquez sur **New token**
+5. Donnez un nom (ex: "FasarliAI")
+6. Sélectionnez **Read** (lecture seule suffit)
+7. Cliquez sur **Generate token**
+8. **Copiez le token** (il commence par `hf_...`)
 
-Ajoutez dans `backend/.env` (optionnel) :
+### Étape 2 : Ajouter le token dans votre backend
+
+#### Pour développement local (`backend/.env`) :
 ```env
 HUGGINGFACE_API_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-**Note** : Le token est optionnel. Sans token, vous avez toujours accès gratuit mais avec des limites de rate plus basses.
+#### Pour Koyeb (déploiement) :
+1. Allez sur [koyeb.com](https://www.koyeb.com)
+2. Ouvrez votre service `fasarliai-backend`
+3. Allez dans **Settings** → **Environment Variables**
+4. Cliquez sur **Add Variable**
+5. Nom : `HUGGINGFACE_API_TOKEN`
+6. Valeur : votre token Hugging Face (commence par `hf_...`)
+7. Cliquez sur **Save**
+
+**Note** : Le token est maintenant **requis** pour utiliser l'API Inference de Hugging Face. C'est gratuit et simple à obtenir !
 
 ## Utilisation
 
