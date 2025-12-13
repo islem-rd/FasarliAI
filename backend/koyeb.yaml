@@ -28,6 +28,9 @@ services:
         secret: NEXT_PUBLIC_SUPABASE_ANON_KEY
       - name: SUPABASE_SERVICE_ROLE_KEY
         secret: SUPABASE_SERVICE_ROLE_KEY
+      # Optional: Hugging Face token for higher rate limits (not required for free tier)
+      # - name: HUGGINGFACE_API_TOKEN
+      #   secret: HUGGINGFACE_API_TOKEN
     regions:
       - fra
     instance_type: free

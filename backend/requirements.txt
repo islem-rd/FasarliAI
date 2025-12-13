@@ -27,3 +27,6 @@ beautifulsoup4  # HTML parsing for web scraping
 requests  # HTTP requests for web scraping
 duckduckgo-search  # DuckDuckGo search API for finding sources
 
+# Image Generation (Free)
+requests  # Already included, used for Hugging Face API
+

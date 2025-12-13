@@ -136,6 +136,15 @@ class Flashcard(BaseModel):
 class FlashcardResponse(BaseModel):
     flashcards: List[Flashcard]
 
+class GenerateImageRequest(BaseModel):
+    prompt: str
+    session_id: str
+
+class GenerateImageResponse(BaseModel):
+    image_url: str
+    prompt: str
+    timestamp: str
+
 class UploadResponse(BaseModel):
     session_id: str
     message: str
@@ -651,6 +660,112 @@ async def generate_flashcards(request: FlashcardRequest):
 async def health():
     """Health check endpoint."""
     return {"status": "ok"}
+
+# Image Generation Endpoint (FREE - Using Hugging Face Inference API)
+@app.post("/api/generate-image", response_model=GenerateImageResponse)
+async def generate_image(request: GenerateImageRequest):
+    """Generate an image based on a prompt using Hugging Face Inference API (FREE)."""
+    try:
+        import requests
+        import base64
+        from io import BytesIO
+        
+        # Use context from PDF if available
+        enhanced_prompt = request.prompt
+        
+        # If session has PDF content, try to enhance the prompt
+        if request.session_id in vector_stores:
+            try:
+                from langchain_groq import ChatGroq
+                
+                vector_store = vector_stores[request.session_id]
+                # Get relevant context from PDF
+                relevant_docs = vector_store.similarity_search(request.prompt, k=2)
+                context = "\n".join([doc.page_content if hasattr(doc, 'page_content') else str(doc) for doc in relevant_docs[:2]])
+                
+                if context:
+                    # Use LLM to create a better image prompt based on PDF context
+                    groq_api_key = os.getenv("GROQ_API_KEY")
+                    if groq_api_key:
+                        llm = ChatGroq(
+                            api_key=groq_api_key,
+                            model_name="llama-3.1-8b-instant",
+                            temperature=0.7
+                        )
+                        
+                        prompt_enhancement = f"""Based on this PDF content, create a detailed image generation prompt for: "{request.prompt}"
+
+PDF Context:
+{context[:500]}
+
+Create a detailed, visual description suitable for image generation. Be specific about style, colors, and composition. Return only the prompt, nothing else."""
+                        
+                        enhanced_prompt = llm.invoke(prompt_enhancement).content if hasattr(llm.invoke(prompt_enhancement), 'content') else str(llm.invoke(prompt_enhancement))
+                        enhanced_prompt = enhanced_prompt.strip().strip('"').strip("'")
+            except Exception as e:
+                print(f"[WARN] Could not enhance prompt with PDF context: {e}")
+                # Use original prompt if enhancement fails
+                pass
+        
+        # Optional: Use Hugging Face token for higher rate limits (not required for free tier)
+        hf_token = os.getenv("HUGGINGFACE_API_TOKEN", "")
+        headers = {}
+        if hf_token:
+            headers["Authorization"] = f"Bearer {hf_token}"
+        
+        # Use Hugging Face Inference API - FREE Stable Diffusion model
+        # Model: runwayml/stable-diffusion-v1-5 (free, no token required)
+        api_url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+        
+        payload = {
+            "inputs": enhanced_prompt,
+            "parameters": {
+                "num_inference_steps": 30,
+                "guidance_scale": 7.5,
+            }
+        }
+        
+        # Make request to Hugging Face API
+        response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+        
+        if response.status_code == 503:
+            # Model is loading, wait and retry
+            import time
+            time.sleep(10)
+            response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+        
+        if not response.ok:
+            error_msg = response.text
+            if response.status_code == 503:
+                raise HTTPException(
+                    status_code=503, 
+                    detail="Model is loading. Please try again in a few seconds."
+                )
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Hugging Face API error: {error_msg}"
+            )
+        
+        # Get image bytes
+        image_bytes = response.content
+        
+        # Convert to base64 data URL for frontend
+        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+        image_url = f"data:image/png;base64,{image_base64}"
+        
+        return GenerateImageResponse(
+            image_url=image_url,
+            prompt=enhanced_prompt,
+            timestamp=datetime.now().isoformat()
+        )
+        
+    except requests.exceptions.Timeout:
+        raise HTTPException(status_code=504, detail="Image generation timed out. Please try again.")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Failed to connect to image generation service: {str(e)}")
+    except Exception as e:
+        print(f"[ERROR] Image generation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate image: {str(e)}")
 
 # Password Reset Endpoints
 @app.post("/api/users/forgot-password")

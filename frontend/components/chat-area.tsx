@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Send, Paperclip, Sun, Moon, Settings, Menu, Upload, FileText, LogOut, User, BarChart3, Download, StopCircle } from 'lucide-react'
+import { Send, Paperclip, Sun, Moon, Settings, Menu, Upload, FileText, LogOut, User, BarChart3, Download, StopCircle, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { MessageBubble } from './message-bubble'
@@ -24,6 +24,7 @@ interface Message {
   avatar?: string
   timestamp: string
   content: string
+  imageUrl?: string
 }
 
 export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversationId }: ChatAreaProps) {
@@ -38,6 +39,7 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const settingsRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -381,6 +383,85 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
     }
   }
 
+  const handleGenerateImage = async () => {
+    if (!inputValue.trim() || !sessionId) {
+      toast.error('Please enter a prompt and upload a PDF first')
+      return
+    }
+
+    setIsGeneratingImage(true)
+    const prompt = inputValue.trim()
+    setInputValue('')
+
+    // Add user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      author: 'You',
+      avatar: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/avatar-user.jpg',
+      timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      content: `🎨 Generate image: ${prompt}`,
+    }
+    setMessages((prev: Message[]) => [...prev, userMessage])
+
+    // Add loading message
+    const loadingMessageId = 'loading-image-' + Date.now()
+    const loadingMessage: Message = {
+      id: loadingMessageId,
+      author: 'FasarliAI',
+      avatar: '⚡',
+      timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      content: '⚡',
+      imageUrl: undefined,
+    }
+    setMessages((prev: Message[]) => [...prev, loadingMessage])
+
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          session_id: sessionId,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to generate image')
+      }
+
+      const data = await response.json()
+
+      // Replace loading message with image
+      setMessages((prev: Message[]) =>
+        prev.map(msg =>
+          msg.id === loadingMessageId
+            ? {
+                id: data.id || Date.now().toString(),
+                author: 'FasarliAI',
+                avatar: '⚡',
+                timestamp: data.timestamp || new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                content: `🎨 Image generated for: "${prompt}"`,
+                imageUrl: data.image_url,
+              }
+            : msg
+        )
+      )
+
+      toast.success('Image generated successfully!')
+    } catch (error: any) {
+      console.error('Error generating image:', error)
+      toast.error(error.message || 'Failed to generate image')
+      
+      // Remove loading message on error
+      setMessages((prev: Message[]) => prev.filter(msg => msg.id !== loadingMessageId))
+    } finally {
+      setIsGeneratingImage(false)
+    }
+  }
+
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return
     
@@ -710,12 +791,13 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
         ) : (
           <>
             {messages.map((msg, idx) => (
-              <MessageBubble 
-                key={msg.id}
+              <MessageBubble
+                key={msg.id || idx}
                 author={msg.author}
                 avatar={msg.avatar || ''}
                 timestamp={msg.timestamp}
                 content={msg.content}
+                imageUrl={msg.imageUrl}
               />
             ))}
             <div ref={messagesEndRef} />
@@ -747,9 +829,9 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
             }
             value={inputValue}
             onChange={(e: any) => setInputValue(e.target.value)}
-            onKeyDown={(e: any) => e.key === 'Enter' && !isLoading && !pdfLoading && handleSendMessage()}
+            onKeyDown={(e: any) => e.key === 'Enter' && !isLoading && !pdfLoading && !isGeneratingImage && handleSendMessage()}
             className="flex-1 bg-background border-border"
-            disabled={!sessionId || isLoading || pdfLoading}
+            disabled={!sessionId || isLoading || pdfLoading || isGeneratingImage}
           />
           <input
             type="file"
@@ -771,11 +853,23 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
               <Download className="w-5 h-5" />
             </Button>
           )}
+          {sessionId && (
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleGenerateImage}
+              disabled={isLoading || isGeneratingImage || !inputValue.trim()}
+              title="Generate Image"
+              className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+            >
+              <ImageIcon className="w-5 h-5" />
+            </Button>
+          )}
           <Button 
             variant="ghost" 
             size="icon"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isLoading}
+            disabled={isLoading || isGeneratingImage}
             title="Upload PDF"
           >
             <Upload className="w-5 h-5" />
@@ -792,7 +886,7 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
           ) : (
             <Button 
               onClick={handleSendMessage}
-              disabled={!sessionId || isLoading || pdfLoading || !inputValue.trim()}
+              disabled={!sessionId || isLoading || pdfLoading || isGeneratingImage || !inputValue.trim()}
               className="gradient-button animate-button-pop disabled:opacity-50 group relative overflow-hidden hover:scale-105 hover:shadow-2xl hover:shadow-teal-500/50 active:scale-95 transition-all duration-300"
               size="icon"
             >

@@ -3,6 +3,7 @@ interface MessageBubbleProps {
   avatar: string
   timestamp: string
   content: string
+  imageUrl?: string
 }
 
 // Format content to preserve formatting
@@ -61,7 +62,7 @@ function formatContent(content: string) {
   })
 }
 
-export function MessageBubble({ author, avatar, timestamp, content }: MessageBubbleProps) {
+export function MessageBubble({ author, avatar, timestamp, content, imageUrl }: MessageBubbleProps) {
   const isUser = author === 'You'
   const isLoading = content === '⚡'
 
@@ -109,6 +110,16 @@ export function MessageBubble({ author, avatar, timestamp, content }: MessageBub
           ) : (
             <div className="text-sm leading-relaxed whitespace-pre-wrap">
               {formatContent(content)}
+              {imageUrl && (
+                <div className="mt-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                  <img
+                    src={imageUrl}
+                    alt="Generated image"
+                    className="w-full h-auto max-w-md"
+                    loading="lazy"
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
