@@ -707,41 +707,82 @@ Create a detailed, visual description suitable for image generation. Be specific
                 # Use original prompt if enhancement fails
                 pass
         
-        # Use DeepAI API - Simple, free, no token required for testing
-        # Alternative: You can use any simple REST API for image generation
-        api_url = "https://api.deepai.org/api/text2img"
+        # Use Prodia API - FREE, simple, no token required!
+        # Prodia offers free Stable Diffusion image generation
+        api_url = "https://api.prodia.com/v1/sd/generate"
         
-        # Get API key from env or use demo key
-        deepai_key = os.getenv("DEEPAI_API_KEY", "quickstart-QUICKSTART")
-        
-        # Simple API call - no complex dependencies
+        # Simple API call - completely free, no token needed
         try:
             response = requests.post(
                 api_url,
-                data={'text': enhanced_prompt},
-                headers={'api-key': deepai_key},
-                timeout=60
+                json={
+                    'model': 'dreamshaper_6BakedVae.safetensors [114c8abb]',
+                    'prompt': enhanced_prompt,
+                    'negative_prompt': 'blurry, low quality',
+                    'steps': 20,
+                    'cfg_scale': 7,
+                    'seed': -1,
+                    'sampler': 'DPM++ 2M Karras',
+                    'aspect_ratio': 'square'
+                },
+                headers={'Content-Type': 'application/json'},
+                timeout=90
             )
             
             if response.status_code == 200:
                 result = response.json()
-                # DeepAI returns a URL to the generated image
-                image_url_from_api = result.get('output_url')
+                job_id = result.get('job')
                 
-                if image_url_from_api:
-                    # Download the image from the URL
-                    img_response = requests.get(image_url_from_api, timeout=30)
-                    if img_response.status_code == 200:
-                        image_bytes = img_response.content
-                    else:
-                        raise HTTPException(
-                            status_code=500,
-                            detail=f"Failed to download generated image: {img_response.status_code}"
-                        )
-                else:
+                if not job_id:
                     raise HTTPException(
                         status_code=500,
-                        detail="API did not return image URL"
+                        detail="API did not return job ID"
+                    )
+                
+                # Poll for the generated image (Prodia is async)
+                import time
+                max_attempts = 30
+                for attempt in range(max_attempts):
+                    time.sleep(2)  # Wait 2 seconds between checks
+                    
+                    check_response = requests.get(
+                        f"https://api.prodia.com/v1/job/{job_id}",
+                        timeout=30
+                    )
+                    
+                    if check_response.status_code == 200:
+                        job_result = check_response.json()
+                        status = job_result.get('status')
+                        
+                        if status == 'succeeded':
+                            image_url_from_api = job_result.get('imageUrl')
+                            if image_url_from_api:
+                                # Download the image from the URL
+                                img_response = requests.get(image_url_from_api, timeout=30)
+                                if img_response.status_code == 200:
+                                    image_bytes = img_response.content
+                                    break
+                                else:
+                                    raise HTTPException(
+                                        status_code=500,
+                                        detail=f"Failed to download generated image: {img_response.status_code}"
+                                    )
+                        elif status == 'failed':
+                            raise HTTPException(
+                                status_code=500,
+                                detail="Image generation failed on Prodia server"
+                            )
+                        # If still generating, continue polling
+                    else:
+                        raise HTTPException(
+                            status_code=check_response.status_code,
+                            detail=f"Error checking job status: {check_response.status_code}"
+                        )
+                else:
+                    # Max attempts reached
+                    raise HTTPException(
+                        status_code=504,
+                        detail="Image generation timed out. The image may still be generating."
                     )
             else:
                 error_text = response.text[:200]
