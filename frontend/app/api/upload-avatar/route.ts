@@ -77,74 +77,14 @@ export async function POST(request: NextRequest) {
     } else {
       const avatarsBucket = buckets?.find(b => b.id === 'avatars')
       if (!avatarsBucket) {
-        // Try to create bucket automatically using service role key
-        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-        if (serviceRoleKey) {
-          try {
-            const supabaseAdmin = createClient(
-              process.env.NEXT_PUBLIC_SUPABASE_URL!,
-              serviceRoleKey,
-              {
-                auth: {
-                  autoRefreshToken: false,
-                  persistSession: false
-                }
-              }
-            )
-            
-            // Try to create bucket via SQL RPC
-            const { error: createError } = await supabaseAdmin.rpc('exec_sql', {
-              sql: `
-                INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-                VALUES ('avatars', 'avatars', true, 5242880, ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
-                ON CONFLICT (id) DO NOTHING;
-              `
-            })
-            
-            if (createError) {
-              console.log('Could not create bucket automatically:', createError.message)
-            } else {
-              // Bucket created, now create policies
-              await supabaseAdmin.rpc('exec_sql', {
-                sql: `
-                  CREATE POLICY IF NOT EXISTS "Users can upload their own avatars"
-                  ON storage.objects FOR INSERT TO authenticated
-                  WITH CHECK (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
-                  
-                  CREATE POLICY IF NOT EXISTS "Anyone can read avatars"
-                  ON storage.objects FOR SELECT TO public
-                  USING (bucket_id = 'avatars');
-                  
-                  CREATE POLICY IF NOT EXISTS "Users can update their own avatars"
-                  ON storage.objects FOR UPDATE TO authenticated
-                  USING (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1])
-                  WITH CHECK (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
-                  
-                  CREATE POLICY IF NOT EXISTS "Users can delete their own avatars"
-                  ON storage.objects FOR DELETE TO authenticated
-                  USING (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
-                `
-              })
-            }
-          } catch (autoCreateError) {
-            console.log('Auto-creation failed, will return error to user')
-          }
-        }
-        
-        // Check again if bucket was created
-        const { data: bucketsAfter, error: checkError } = await supabase.storage.listBuckets()
-        const avatarsBucketAfter = bucketsAfter?.find(b => b.id === 'avatars')
-        
-        if (!avatarsBucketAfter) {
-          return NextResponse.json(
-            { 
-              error: 'Storage bucket "avatars" not found. Please run migration 005_create_avatars_bucket.sql in Supabase SQL Editor, or call /api/setup-avatars endpoint.',
-              errorCode: 'BUCKET_NOT_FOUND',
-              setupEndpoint: '/api/setup-avatars'
-            },
-            { status: 500 }
-          )
-        }
+        return NextResponse.json(
+          { 
+            error: 'Storage bucket "avatars" not found. Please run migration 005_create_avatars_bucket.sql in Supabase SQL Editor.',
+            errorCode: 'BUCKET_NOT_FOUND',
+            instructions: 'Go to Supabase Dashboard → SQL Editor → Run the SQL from backend/supabase/migrations/005_create_avatars_bucket.sql'
+          },
+          { status: 500 }
+        )
       }
     }
 
