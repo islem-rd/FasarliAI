@@ -30,13 +30,14 @@ This guide will help you set up Google OAuth authentication for sign in and sign
    - Name: `FasarliAI Web Client`
    - Authorized JavaScript origins:
      - For development: `http://localhost:3000`
-     - For production: `https://yourdomain.com` (replace with your actual domain)
+     - For production: `https://fasarliai.vercel.app` (your production domain)
    - Authorized redirect URIs:
      - For development: `http://localhost:3000/auth/callback`
-     - For production: `https://yourdomain.com/auth/callback`
+     - For production: `https://fasarliai.vercel.app/auth/callback`
      - **Important**: Also add your Supabase redirect URL:
        - `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`
        - You can find your project ref in your Supabase project URL
+       - Example: `https://fmvudazvwqfuiszomvcu.supabase.co/auth/v1/callback` (replace with your actual project ref)
    - Click **Create**
    - **Copy the Client ID and Client Secret** (you'll need these in Step 2)
 

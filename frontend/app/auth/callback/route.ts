@@ -28,16 +28,11 @@ export async function GET(request: NextRequest) {
 
     if (!error) {
       // Redirect to home page or the next parameter
-      const forwardedHost = request.headers.get('x-forwarded-host')
-      const isLocalEnv = process.env.NODE_ENV === 'development'
+      const origin = request.headers.get('origin') || request.headers.get('x-forwarded-host') || request.nextUrl.origin
+      const protocol = request.headers.get('x-forwarded-proto') || (origin.startsWith('https') ? 'https' : 'https')
+      const baseUrl = origin.startsWith('http') ? origin : `${protocol}://${origin}`
       
-      if (isLocalEnv) {
-        return NextResponse.redirect(new URL(next, request.url))
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`)
-      } else {
-        return NextResponse.redirect(new URL(next, request.url))
-      }
+      return NextResponse.redirect(new URL(next, baseUrl))
     }
   }
 
