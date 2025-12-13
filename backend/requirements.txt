@@ -29,4 +29,5 @@ duckduckgo-search  # DuckDuckGo search API for finding sources
 
 # Image Generation (Free)
 huggingface-hub  # Official Hugging Face client for Inference API
+Pillow  # Image processing for PIL Image support
 
