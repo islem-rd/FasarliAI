@@ -163,22 +163,32 @@ export function QuizPanel() {
                   <Button
                     key={option}
                     variant="outline"
-                    className={`w-full justify-start border-2 transition-colors whitespace-normal text-left h-auto py-3 px-4 ${
+                    className={`w-full justify-start border-2 transition-all duration-200 whitespace-normal text-left h-auto py-3 px-4 ${
                       showResult
                         ? isCorrect
-                          ? 'border-green-500 bg-green-50 text-green-700 dark:bg-green-900/20'
+                          ? 'border-green-500 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 dark:border-green-400 shadow-md'
                           : isSelected
-                          ? 'border-red-500 bg-red-50 text-red-700 dark:bg-red-900/20'
-                          : ''
+                          ? 'border-red-500 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 dark:border-red-400 shadow-md'
+                          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
                         : isSelected
-                        ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/40 dark:text-teal-200'
-                        : ''
+                        ? 'border-teal-500 bg-white dark:bg-teal-900/50 text-teal-700 dark:text-teal-200 shadow-md ring-2 ring-teal-200 dark:ring-teal-800'
+                        : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-teal-300 dark:hover:border-teal-600 hover:bg-teal-50/50 dark:hover:bg-teal-900/20'
                     }`}
                     onClick={() => handleAnswerSelect(option)}
                     disabled={showAnswer}
                   >
                     <div className="flex items-start gap-2 w-full">
-                      <span className="font-bold flex-shrink-0">{option.toUpperCase()})</span>
+                      <span className={`font-bold flex-shrink-0 ${
+                        showResult
+                          ? isCorrect
+                            ? 'text-green-600 dark:text-green-400'
+                            : isSelected
+                            ? 'text-red-600 dark:text-red-400'
+                            : 'text-gray-500 dark:text-gray-400'
+                          : isSelected
+                          ? 'text-teal-600 dark:text-teal-400'
+                          : 'text-gray-500 dark:text-gray-400'
+                      }`}>{option.toUpperCase()})</span>
                       <span className="flex-1 break-words font-semibold">{answerText}</span>
                     </div>
                   </Button>

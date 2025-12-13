@@ -549,9 +549,12 @@ export default function SettingsPage() {
                     }
 
                     toast.success('Account deleted successfully')
-                    // Redirect to signin after a short delay
+                    // Clear local storage and session storage
+                    localStorage.clear()
+                    sessionStorage.clear()
+                    // Redirect to signup after a short delay
                     setTimeout(() => {
-                      router.push('/signin')
+                      router.push('/signup')
                     }, 2000)
                   } catch (error: any) {
                     toast.error('An unexpected error occurred')

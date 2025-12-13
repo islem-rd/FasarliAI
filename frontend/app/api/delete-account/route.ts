@@ -110,13 +110,36 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // Sign out the user
+    // Sign out the user and clear all cookies
     await supabase.auth.signOut()
 
-    return NextResponse.json({
+    // Create response with cleared cookies
+    const response = NextResponse.json({
       success: true,
       message: 'Account deleted successfully'
     })
+
+    // Clear all auth-related cookies
+    const cookieNames = [
+      'sb-access-token',
+      'sb-refresh-token',
+      'supabase-auth-token',
+      'sb-auth-token',
+    ]
+
+    cookieNames.forEach(cookieName => {
+      response.cookies.delete(cookieName)
+      // Also delete with different possible paths
+      response.cookies.set(cookieName, '', {
+        expires: new Date(0),
+        path: '/',
+        domain: undefined,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+      })
+    })
+
+    return response
   } catch (error: any) {
     console.error('Error in delete-account route:', error)
     return NextResponse.json(
