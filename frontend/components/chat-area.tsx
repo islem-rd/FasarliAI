@@ -140,6 +140,7 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
                 author: msg.role === 'user' ? 'You' : 'FasarliAI',
                 timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
                 content: msg.content,
+                imageUrl: msg.image_url || undefined,
               })))
             }
             
@@ -281,6 +282,7 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
               timestamp: new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
               content: msg.content,
               sources: msg.sources,
+              imageUrl: msg.image_url || undefined,
             }))
             setMessages(formattedMessages)
           }
@@ -424,6 +426,7 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
         body: JSON.stringify({
           prompt,
           session_id: sessionId,
+          conversation_id: conversationId, // Include conversation_id to save message
         }),
       })
 

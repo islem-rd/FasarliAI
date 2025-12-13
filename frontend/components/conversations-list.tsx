@@ -74,6 +74,7 @@ export function ConversationsList({ onSelectConversation }: ConversationsListPro
           timestamp: new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
           content: msg.content,
           sources: msg.sources,
+          imageUrl: msg.image_url || undefined,
         }))
         setMessages(formattedMessages)
       } else {

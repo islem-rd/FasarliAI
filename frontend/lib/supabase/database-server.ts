@@ -108,7 +108,8 @@ export async function createChatMessageServer(
   userId: string,
   author: string,
   content: string,
-  sources: any = null
+  sources: any = null,
+  imageUrl: string | null = null
 ) {
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -125,15 +126,21 @@ export async function createChatMessageServer(
     }
   )
   
+  const insertData: any = {
+    conversation_id: conversationId,
+    user_id: userId,
+    author,
+    content,
+    sources,
+  }
+  
+  if (imageUrl) {
+    insertData.image_url = imageUrl
+  }
+  
   const { data, error } = await supabase
     .from('chat_messages')
-    .insert({
-      conversation_id: conversationId,
-      user_id: userId,
-      author,
-      content,
-      sources,
-    })
+    .insert(insertData)
     .select()
     .single()
 
