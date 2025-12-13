@@ -1,6 +1,6 @@
-# Configuration de la génération d'images (GRATUIT)
+# Configuration de la génération d'images (GRATUIT - SIMPLE)
 
-La fonctionnalité de génération d'images utilise **Hugging Face Inference API** (GRATUIT) avec Stable Diffusion pour créer des illustrations basées sur le contenu de vos PDFs.
+La fonctionnalité de génération d'images utilise **DeepAI API** (GRATUIT pour tester) - une solution simple et facile à utiliser sans dépendances complexes.
 
 ## ✅ Solution 100% Gratuite
 
@@ -9,27 +9,22 @@ La fonctionnalité de génération d'images utilise **Hugging Face Inference API
 - **Stable Diffusion v1.5** - modèle de qualité professionnelle
 - **Pas de limite de crédit** (rate limits généreux)
 
-## Configuration Requise
+## Configuration (TRÈS SIMPLE - Aucune configuration requise pour tester !)
 
-### Étape 1 : Obtenir un token Hugging Face (GRATUIT)
+### Option 1 : Utilisation gratuite (Démo)
+**Aucune configuration nécessaire !** Le système utilise une clé de démonstration gratuite pour tester.
 
-1. Allez sur [huggingface.co](https://huggingface.co)
-2. Créez un compte gratuit (si vous n'en avez pas)
-3. Allez dans **Settings** → **Access Tokens** → [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
-4. Cliquez sur **New token**
-5. Donnez un nom (ex: "FasarliAI")
-6. Sélectionnez **Read** (lecture seule suffit pour l'API Inference)
-7. **Important** : Acceptez les termes d'utilisation de l'API Inference si demandé
-8. Cliquez sur **Generate token**
-9. **Copiez le token** (il commence par `hf_...`)
+### Option 2 : Utilisation avec votre propre clé (Recommandé pour production)
 
-**Note** : Si vous obtenez une erreur 403, assurez-vous d'avoir accepté les conditions d'utilisation de l'API Inference dans vos paramètres Hugging Face.
-
-### Étape 2 : Ajouter le token dans votre backend
+1. Allez sur [deepai.org](https://deepai.org)
+2. Créez un compte gratuit
+3. Allez dans **API Keys**
+4. Créez une nouvelle clé API
+5. Copiez votre clé
 
 #### Pour développement local (`backend/.env`) :
 ```env
-HUGGINGFACE_API_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+DEEPAI_API_KEY=votre_cle_api
 ```
 
 #### Pour Koyeb (déploiement) :
@@ -37,11 +32,11 @@ HUGGINGFACE_API_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 2. Ouvrez votre service `fasarliai-backend`
 3. Allez dans **Settings** → **Environment Variables**
 4. Cliquez sur **Add Variable**
-5. Nom : `HUGGINGFACE_API_TOKEN`
-6. Valeur : votre token Hugging Face (commence par `hf_...`)
+5. Nom : `DEEPAI_API_KEY`
+6. Valeur : votre clé DeepAI
 7. Cliquez sur **Save**
 
-**Note** : Le token est maintenant **requis** pour utiliser l'API Inference de Hugging Face. C'est gratuit et simple à obtenir !
+**Note** : Sans clé personnalisée, le système utilise une clé de démonstration gratuite (limite de requêtes).
 
 ## Utilisation
 
@@ -52,11 +47,11 @@ HUGGINGFACE_API_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 ## Fonctionnalités
 
-- **100% Gratuit** : Aucun coût par image
+- **100% Gratuit** : Clé de démonstration gratuite (ou votre propre clé gratuite)
+- **Très Simple** : Utilise uniquement `requests` (déjà installé) - pas de dépendances complexes
 - **Contexte PDF** : Le système utilise le contenu de votre PDF pour améliorer le prompt
-- **Stable Diffusion v1.5** : Modèle de qualité professionnelle
-- **Taille** : Images générées en 512x512 pixels
-- **Pas de dépendances externes** : Utilise uniquement `requests` (déjà installé)
+- **Facile à tester** : Fonctionne immédiatement sans configuration
+- **Pas de dépendances complexes** : Utilise uniquement `requests` (déjà installé)
 
 ## Notes
 
