@@ -53,7 +53,7 @@ type SignInFormValues = z.infer<typeof signInSchema>
 
 export default function SignInPage() {
   const router = useRouter()
-  const { signIn, verifyPassword, user, loading } = useAuth()
+  const { signIn, signInWithGoogle, verifyPassword, user, loading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -188,11 +188,20 @@ export default function SignInPage() {
         {/* Google Sign In Button */}
         <Button
           type="button"
-          disabled
+          onClick={async () => {
+            setIsLoading(true)
+            const { error } = await signInWithGoogle()
+            if (error) {
+              toast.error(error.message || 'Failed to sign in with Google')
+              setIsLoading(false)
+            }
+            // Note: User will be redirected to Google, so we don't need to handle success here
+          }}
+          disabled={isLoading}
           className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <GoogleIcon />
-          <span className="ml-2">Continue with Google</span>
+          <span className="ml-2">{isLoading ? 'Redirecting...' : 'Continue with Google'}</span>
         </Button>
 
         <div className="relative">
