@@ -739,68 +739,6 @@ Create a detailed, visual description suitable for image generation. Be specific
                     status_code=response.status_code,
                     detail=f"API error ({response.status_code}): Failed to generate image"
                 )
-            
-            if response.status_code == 200:
-                result = response.json()
-                job_id = result.get('job')
-                
-                if not job_id:
-                    raise HTTPException(
-                        status_code=500,
-                        detail="API did not return job ID"
-                    )
-                
-                # Poll for the generated image (Prodia is async)
-                import time
-                max_attempts = 30
-                for attempt in range(max_attempts):
-                    time.sleep(2)  # Wait 2 seconds between checks
-                    
-                    check_response = requests.get(
-                        f"https://api.prodia.com/v1/job/{job_id}",
-                        timeout=30
-                    )
-                    
-                    if check_response.status_code == 200:
-                        job_result = check_response.json()
-                        status = job_result.get('status')
-                        
-                        if status == 'succeeded':
-                            image_url_from_api = job_result.get('imageUrl')
-                            if image_url_from_api:
-                                # Download the image from the URL
-                                img_response = requests.get(image_url_from_api, timeout=30)
-                                if img_response.status_code == 200:
-                                    image_bytes = img_response.content
-                                    break
-                                else:
-                                    raise HTTPException(
-                                        status_code=500,
-                                        detail=f"Failed to download generated image: {img_response.status_code}"
-                                    )
-                        elif status == 'failed':
-                            raise HTTPException(
-                                status_code=500,
-                                detail="Image generation failed on Prodia server"
-                            )
-                        # If still generating, continue polling
-                    else:
-                        raise HTTPException(
-                            status_code=check_response.status_code,
-                            detail=f"Error checking job status: {check_response.status_code}"
-                        )
-                else:
-                    # Max attempts reached
-                    raise HTTPException(
-                        status_code=504,
-                        detail="Image generation timed out. The image may still be generating."
-                    )
-            else:
-                error_text = response.text[:200]
-                raise HTTPException(
-                    status_code=response.status_code,
-                    detail=f"API error ({response.status_code}): {error_text}"
-                )
         except requests.exceptions.Timeout:
             raise HTTPException(status_code=504, detail="Image generation timed out. Please try again.")
         except requests.exceptions.RequestException as req_error:
