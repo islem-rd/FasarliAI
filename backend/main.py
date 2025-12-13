@@ -661,12 +661,12 @@ async def health():
     """Health check endpoint."""
     return {"status": "ok"}
 
-# Image Generation Endpoint (FREE - Using Hugging Face Inference API)
+# Image Generation Endpoint (FREE - Using Simple REST API)
 @app.post("/api/generate-image", response_model=GenerateImageResponse)
 async def generate_image(request: GenerateImageRequest):
-    """Generate an image based on a prompt using Hugging Face Inference API (FREE)."""
+    """Generate an image based on a prompt using a simple REST API (FREE for testing)."""
     try:
-        from huggingface_hub import InferenceClient
+        import requests
         import base64
         from io import BytesIO
         
@@ -707,75 +707,51 @@ Create a detailed, visual description suitable for image generation. Be specific
                 # Use original prompt if enhancement fails
                 pass
         
-        # Hugging Face token is required for the Inference API
-        hf_token = os.getenv("HUGGINGFACE_API_TOKEN", "")
-        if not hf_token:
-            raise HTTPException(
-                status_code=500,
-                detail="HUGGINGFACE_API_TOKEN is required. Get a free token at https://huggingface.co/settings/tokens"
-            )
+        # Use DeepAI API - Simple, free, no token required for testing
+        # Alternative: You can use any simple REST API for image generation
+        api_url = "https://api.deepai.org/api/text2img"
         
-        # Use official Hugging Face Inference Client (handles router automatically)
-        # This client automatically uses the correct endpoint and handles authentication
-        client = InferenceClient(
-            model="runwayml/stable-diffusion-v1-5",
-            token=hf_token
-        )
-        
-        # Generate image using the official client
-        # The client handles all the complexity of routing and authentication
+        # Simple API call - no complex dependencies
         try:
-            image_bytes = client.text_to_image(
-                prompt=enhanced_prompt,
-                num_inference_steps=30,
-                guidance_scale=7.5,
+            response = requests.post(
+                api_url,
+                data={'text': enhanced_prompt},
+                headers={'api-key': 'quickstart-QUICKSTART'},  # Free demo key
+                timeout=60
             )
-        except Exception as api_error:
-            error_msg = str(api_error)
-            # Check for specific error types
-            if "401" in error_msg or "Unauthorized" in error_msg:
-                raise HTTPException(
-                    status_code=401,
-                    detail="Unauthorized. Please check your HUGGINGFACE_API_TOKEN is valid. Get a free token at https://huggingface.co/settings/tokens"
-                )
-            elif "403" in error_msg or "Permission" in error_msg or "permissions" in error_msg:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Permission denied. Please ensure your token has proper permissions. Create a new token at https://huggingface.co/settings/tokens and accept the Inference API terms of service."
-                )
-            elif "503" in error_msg or "loading" in error_msg.lower():
-                raise HTTPException(
-                    status_code=503,
-                    detail="Model is loading. Please try again in a few seconds."
-                )
+            
+            if response.status_code == 200:
+                result = response.json()
+                # DeepAI returns a URL to the generated image
+                image_url_from_api = result.get('output_url')
+                
+                if image_url_from_api:
+                    # Download the image from the URL
+                    img_response = requests.get(image_url_from_api, timeout=30)
+                    if img_response.status_code == 200:
+                        image_bytes = img_response.content
+                    else:
+                        raise HTTPException(
+                            status_code=500,
+                            detail=f"Failed to download generated image: {img_response.status_code}"
+                        )
+                else:
+                    raise HTTPException(
+                        status_code=500,
+                        detail="API did not return image URL"
+                    )
             else:
+                error_text = response.text[:200]
                 raise HTTPException(
-                    status_code=500,
-                    detail=f"Failed to generate image: {error_msg[:200]}"
+                    status_code=response.status_code,
+                    detail=f"API error ({response.status_code}): {error_text}"
                 )
-        
-        # Convert image to bytes if it's a PIL Image
-        try:
-            from PIL import Image
-            if isinstance(image_bytes, Image.Image):
-                # Convert PIL Image to bytes
-                img_buffer = BytesIO()
-                image_bytes.save(img_buffer, format='PNG')
-                image_bytes = img_buffer.getvalue()
-            elif not isinstance(image_bytes, bytes):
-                # If it's not bytes, try to convert
-                image_bytes = bytes(image_bytes)
-        except ImportError as pil_error:
+        except requests.exceptions.Timeout:
+            raise HTTPException(status_code=504, detail="Image generation timed out. Please try again.")
+        except requests.exceptions.RequestException as req_error:
             raise HTTPException(
                 status_code=500,
-                detail=f"Pillow library not installed: {str(pil_error)}. Run: pip install Pillow"
-            )
-        except Exception as conv_error:
-            print(f"[ERROR] Error converting image: {conv_error}")
-            print(f"[ERROR] Image type: {type(image_bytes)}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Error processing generated image: {str(conv_error)}"
+                detail=f"Failed to connect to image generation service: {str(req_error)}"
             )
         
         # Convert to base64 data URL for frontend
@@ -801,7 +777,7 @@ Create a detailed, visual description suitable for image generation. Be specific
         print(f"[ERROR] Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=500, 
-            detail=f"Required library not installed: {str(import_err)}. Install with: pip install huggingface-hub Pillow"
+            detail=f"Required library not installed: {str(import_err)}. Install with: pip install requests"
         )
     except HTTPException:
         # Re-raise HTTPException as is (already properly formatted)
