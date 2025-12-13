@@ -28,5 +28,5 @@ requests  # HTTP requests for web scraping
 duckduckgo-search  # DuckDuckGo search API for finding sources
 
 # Image Generation (Free)
-requests  # Already included, used for Hugging Face API
+huggingface-hub  # Official Hugging Face client for Inference API
 

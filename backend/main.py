@@ -666,7 +666,7 @@ async def health():
 async def generate_image(request: GenerateImageRequest):
     """Generate an image based on a prompt using Hugging Face Inference API (FREE)."""
     try:
-        import requests
+        from huggingface_hub import InferenceClient
         import base64
         from io import BytesIO
         
@@ -715,70 +715,55 @@ Create a detailed, visual description suitable for image generation. Be specific
                 detail="HUGGINGFACE_API_TOKEN is required. Get a free token at https://huggingface.co/settings/tokens"
             )
         
-        headers = {
-            "Authorization": f"Bearer {hf_token}",
-            "Content-Type": "application/json"
-        }
+        # Use official Hugging Face Inference Client (handles router automatically)
+        # This client automatically uses the correct endpoint and handles authentication
+        client = InferenceClient(
+            model="runwayml/stable-diffusion-v1-5",
+            token=hf_token
+        )
         
-        # Use Hugging Face Inference API directly (not router)
-        # Direct endpoint works better with standard tokens
-        # Model: runwayml/stable-diffusion-v1-5
-        api_url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
-        
-        payload = {
-            "inputs": enhanced_prompt,
-            "parameters": {
-                "num_inference_steps": 30,
-                "guidance_scale": 7.5,
-            }
-        }
-        
-        # Make request to Hugging Face API
+        # Generate image using the official client
+        # The client handles all the complexity of routing and authentication
         try:
-            response = requests.post(api_url, headers=headers, json=payload, timeout=90)
-        except requests.exceptions.Timeout:
-            raise HTTPException(status_code=504, detail="Image generation timed out. Please try again.")
-        
-        if response.status_code == 503:
-            # Model is loading, wait and retry
-            import time
-            time.sleep(10)
-            response = requests.post(api_url, headers=headers, json=payload, timeout=90)
-        
-        if not response.ok:
-            error_msg = response.text
-            # Try to extract JSON error message
-            try:
-                import json
-                error_json = json.loads(error_msg)
-                if isinstance(error_json, dict) and "error" in error_json:
-                    error_msg = error_json["error"]
-            except:
-                pass
-            
-            if response.status_code == 401:
+            image_bytes = client.text_to_image(
+                prompt=enhanced_prompt,
+                num_inference_steps=30,
+                guidance_scale=7.5,
+            )
+        except Exception as api_error:
+            error_msg = str(api_error)
+            # Check for specific error types
+            if "401" in error_msg or "Unauthorized" in error_msg:
                 raise HTTPException(
                     status_code=401,
                     detail="Unauthorized. Please check your HUGGINGFACE_API_TOKEN is valid. Get a free token at https://huggingface.co/settings/tokens"
                 )
-            elif response.status_code == 403:
+            elif "403" in error_msg or "Permission" in error_msg or "permissions" in error_msg:
                 raise HTTPException(
                     status_code=403,
-                    detail="Permission denied. Please create a new token with 'Read' permissions (or 'Write' if needed) at https://huggingface.co/settings/tokens. Make sure to accept the terms of service for Inference API."
+                    detail="Permission denied. Please ensure your token has proper permissions. Create a new token at https://huggingface.co/settings/tokens and accept the Inference API terms of service."
                 )
-            elif response.status_code == 503:
+            elif "503" in error_msg or "loading" in error_msg.lower():
                 raise HTTPException(
-                    status_code=503, 
+                    status_code=503,
                     detail="Model is loading. Please try again in a few seconds."
                 )
             else:
                 raise HTTPException(
-                    status_code=response.status_code,
-                    detail=f"Hugging Face API error ({(response.status_code)}): {error_msg[:200]}"
+                    status_code=500,
+                    detail=f"Failed to generate image: {error_msg[:200]}"
                 )
         
-        # Get image bytes
-        image_bytes = response.content
+        # Convert image to bytes if it's a PIL Image
+        from PIL import Image
+        if isinstance(image_bytes, Image.Image):
+            # Convert PIL Image to bytes
+            img_buffer = BytesIO()
+            image_bytes.save(img_buffer, format='PNG')
+            image_bytes = img_buffer.getvalue()
+        elif not isinstance(image_bytes, bytes):
+            # If it's not bytes, try to convert
+            image_bytes = bytes(image_bytes)
         
         # Convert to base64 data URL for frontend
         image_base64 = base64.b64encode(image_bytes).decode('utf-8')
@@ -790,13 +775,21 @@ Create a detailed, visual description suitable for image generation. Be specific
             timestamp=datetime.now().isoformat()
         )
         
-    except requests.exceptions.Timeout:
-        raise HTTPException(status_code=504, detail="Image generation timed out. Please try again.")
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Failed to connect to image generation service: {str(e)}")
+    except ImportError:
+        raise HTTPException(
+            status_code=500, 
+            detail="huggingface_hub library not installed. Run: pip install huggingface-hub"
+        )
     except Exception as e:
         print(f"[ERROR] Image generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate image: {str(e)}")
+        error_str = str(e)
+        # Handle timeout errors
+        if "timeout" in error_str.lower() or "timed out" in error_str.lower():
+            raise HTTPException(status_code=504, detail="Image generation timed out. Please try again.")
+        # Re-raise HTTPException as is
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=f"Failed to generate image: {error_str[:200]}")
 
 # Password Reset Endpoints
 @app.post("/api/users/forgot-password")
