@@ -245,7 +245,7 @@ export async function getChatMessages(conversationId: string) {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('chat_messages')
-    .select('*')
+    .select('id, author, content, image_url, sources, created_at')
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: true })
 

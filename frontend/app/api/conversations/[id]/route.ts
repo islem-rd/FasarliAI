@@ -51,7 +51,7 @@ export async function GET(
     // Fetch messages for this conversation
     const { data: messages, error: messagesError } = await supabase
       .from('chat_messages')
-      .select('id, author, content, created_at')
+      .select('id, author, content, image_url, created_at')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true })
 
@@ -82,6 +82,7 @@ export async function GET(
       messages: (messages || []).map(msg => ({
         role: msg.author,
         content: msg.content,
+        image_url: msg.image_url,
         timestamp: msg.created_at
       }))
     })

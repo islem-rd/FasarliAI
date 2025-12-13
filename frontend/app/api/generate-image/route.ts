@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/supabase/server-auth'
+import { createServerClient } from '@supabase/ssr'
+import { createChatMessageServer } from '@/lib/supabase/database-server'
 
 const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -15,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { prompt, session_id } = body
+    const { prompt, session_id, conversation_id } = body
 
     if (!prompt || !session_id) {
       return NextResponse.json(
@@ -73,7 +75,85 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json(data)
+    // Backend returns image as base64 data URL
+    const imageDataUrl = data.image_url
+    
+    // Convert base64 data URL to blob and upload to Supabase Storage
+    let storedImageUrl = imageDataUrl // Fallback to base64 if upload fails
+    
+    if (imageDataUrl && imageDataUrl.startsWith('data:image')) {
+      try {
+        // Extract base64 data from data URL
+        const base64Data = imageDataUrl.split(',')[1]
+        const imageBuffer = Buffer.from(base64Data, 'base64')
+        
+        // Create Supabase client
+        const supabase = createServerClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            cookies: {
+              getAll() {
+                return request.cookies.getAll()
+              },
+              setAll() {
+                // Cookies are handled by middleware
+              },
+            },
+          }
+        )
+        
+        // Generate unique filename
+        const timestamp = Date.now()
+        const fileName = `${user.id}/${timestamp}-generated.png`
+        
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('generated-images')
+          .upload(fileName, imageBuffer, {
+            contentType: 'image/png',
+            upsert: true,
+          })
+        
+        if (!uploadError && uploadData) {
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('generated-images')
+            .getPublicUrl(fileName)
+          
+          storedImageUrl = publicUrl
+          
+          // Save message to database with image URL if conversation_id provided
+          if (conversation_id) {
+            try {
+              await createChatMessageServer(
+                request,
+                conversation_id,
+                user.id,
+                'assistant',
+                `🎨 Image generated for: "${prompt}"`,
+                null,
+                storedImageUrl
+              )
+            } catch (msgError) {
+              console.error('Error saving message:', msgError)
+              // Don't fail the request if message saving fails
+            }
+          }
+        } else {
+          console.error('Error uploading image to storage:', uploadError)
+          // Continue with base64 URL if upload fails
+        }
+      } catch (storageError) {
+        console.error('Error processing image for storage:', storageError)
+        // Continue with base64 URL if processing fails
+      }
+    }
+
+    return NextResponse.json({
+      ...data,
+      image_url: storedImageUrl,
+    })
   } catch (error: any) {
     console.error('Error in generate-image route:', error)
     return NextResponse.json(
