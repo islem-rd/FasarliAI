@@ -1,6 +1,6 @@
-# Configuration de la génération d'images (GRATUIT - SIMPLE)
+# Configuration de la génération d'images (100% GRATUIT - TRÈS SIMPLE)
 
-La fonctionnalité de génération d'images utilise **DeepAI API** (GRATUIT pour tester) - une solution simple et facile à utiliser sans dépendances complexes.
+La fonctionnalité de génération d'images utilise **Prodia API** - une solution 100% gratuite, très simple, sans token, sans inscription nécessaire !
 
 ## ✅ Solution 100% Gratuite
 
@@ -9,34 +9,15 @@ La fonctionnalité de génération d'images utilise **DeepAI API** (GRATUIT pour
 - **Stable Diffusion v1.5** - modèle de qualité professionnelle
 - **Pas de limite de crédit** (rate limits généreux)
 
-## Configuration (TRÈS SIMPLE - Aucune configuration requise pour tester !)
+## Configuration (AUCUNE CONFIGURATION REQUISE !)
 
-### Option 1 : Utilisation gratuite (Démo)
-**Aucune configuration nécessaire !** Le système utilise une clé de démonstration gratuite pour tester.
+✅ **100% Gratuit**  
+✅ **Aucune inscription**  
+✅ **Aucun token**  
+✅ **Aucune clé API**  
+✅ **Fonctionne immédiatement !**
 
-### Option 2 : Utilisation avec votre propre clé (Recommandé pour production)
-
-1. Allez sur [deepai.org](https://deepai.org)
-2. Créez un compte gratuit
-3. Allez dans **API Keys**
-4. Créez une nouvelle clé API
-5. Copiez votre clé
-
-#### Pour développement local (`backend/.env`) :
-```env
-DEEPAI_API_KEY=votre_cle_api
-```
-
-#### Pour Koyeb (déploiement) :
-1. Allez sur [koyeb.com](https://www.koyeb.com)
-2. Ouvrez votre service `fasarliai-backend`
-3. Allez dans **Settings** → **Environment Variables**
-4. Cliquez sur **Add Variable**
-5. Nom : `DEEPAI_API_KEY`
-6. Valeur : votre clé DeepAI
-7. Cliquez sur **Save**
-
-**Note** : Sans clé personnalisée, le système utilise une clé de démonstration gratuite (limite de requêtes).
+Le système utilise **Prodia API** qui est complètement gratuit et ne nécessite aucune configuration. C'est prêt à l'emploi !
 
 ## Utilisation
 
@@ -47,11 +28,12 @@ DEEPAI_API_KEY=votre_cle_api
 
 ## Fonctionnalités
 
-- **100% Gratuit** : Clé de démonstration gratuite (ou votre propre clé gratuite)
+- **100% Gratuit** : Prodia offre un accès gratuit à Stable Diffusion
+- **Aucune configuration** : Fonctionne immédiatement sans rien configurer
 - **Très Simple** : Utilise uniquement `requests` (déjà installé) - pas de dépendances complexes
 - **Contexte PDF** : Le système utilise le contenu de votre PDF pour améliorer le prompt
-- **Facile à tester** : Fonctionne immédiatement sans configuration
-- **Pas de dépendances complexes** : Utilise uniquement `requests` (déjà installé)
+- **Stable Diffusion** : Qualité professionnelle avec modèles récents
+- **Pas de limites strictes** : Gratuit pour un usage raisonnable
 
 ## Notes
 
