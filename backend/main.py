@@ -711,12 +711,15 @@ Create a detailed, visual description suitable for image generation. Be specific
         # Alternative: You can use any simple REST API for image generation
         api_url = "https://api.deepai.org/api/text2img"
         
+        # Get API key from env or use demo key
+        deepai_key = os.getenv("DEEPAI_API_KEY", "quickstart-QUICKSTART")
+        
         # Simple API call - no complex dependencies
         try:
             response = requests.post(
                 api_url,
                 data={'text': enhanced_prompt},
-                headers={'api-key': 'quickstart-QUICKSTART'},  # Free demo key
+                headers={'api-key': deepai_key},
                 timeout=60
             )
             
