@@ -57,10 +57,20 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  
   useEffect(() => {
     const isDark = document.documentElement.classList.contains('dark')
     setIsDarkMode(isDark)
-  }, [])
+    
+    // Check for OAuth error in URL
+    const params = new URLSearchParams(window.location.search)
+    const error = params.get('error')
+    if (error) {
+      toast.error(`OAuth error: ${decodeURIComponent(error)}`)
+      // Clean up URL
+      router.replace('/signin')
+    }
+  }, [router])
 
   useEffect(() => {
     if (!loading && user && !isVerifying) {

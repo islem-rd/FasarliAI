@@ -7,6 +7,10 @@ export async function GET(request: NextRequest) {
   const next = requestUrl.searchParams.get('next') || '/'
 
   if (code) {
+    // Create a response object that we'll use to set cookies
+    const redirectUrl = new URL(next, requestUrl.origin)
+    let response = NextResponse.redirect(redirectUrl)
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -16,9 +20,14 @@ export async function GET(request: NextRequest) {
             return request.cookies.getAll()
           },
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
+            cookiesToSet.forEach(({ name, value, options }) => {
               request.cookies.set(name, value)
-            )
+              response.cookies.set(name, value, {
+                ...options,
+                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+              })
+            })
           },
         },
       }
@@ -27,16 +36,20 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      // Redirect to home page or the next parameter
-      const origin = request.headers.get('origin') || request.headers.get('x-forwarded-host') || request.nextUrl.origin
-      const protocol = request.headers.get('x-forwarded-proto') || (origin.startsWith('https') ? 'https' : 'https')
-      const baseUrl = origin.startsWith('http') ? origin : `${protocol}://${origin}`
-      
-      return NextResponse.redirect(new URL(next, baseUrl))
+      // Return the response with cookies set
+      return response
+    } else {
+      console.error('OAuth callback error:', error)
+      // If there's an error, redirect to signin with error message
+      const errorUrl = new URL('/signin', requestUrl.origin)
+      errorUrl.searchParams.set('error', error.message || 'oauth_error')
+      return NextResponse.redirect(errorUrl)
     }
   }
 
-  // If there's an error or no code, redirect to signin
-  return NextResponse.redirect(new URL('/signin?error=oauth_error', request.url))
+  // If there's no code, redirect to signin
+  const errorUrl = new URL('/signin', requestUrl.origin)
+  errorUrl.searchParams.set('error', 'oauth_error')
+  return NextResponse.redirect(errorUrl)
 }
 
