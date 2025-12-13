@@ -674,7 +674,17 @@ export function ChatArea({ viewMode, sidebarOpen, onToggleSidebar, loadConversat
               <Moon className="w-5 h-5" />
             )}
           </Button>
-          <div className="w-8 h-8 rounded-full bg-emerald-700" />
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="Profile"
+              className="w-8 h-8 rounded-full object-cover border-2 border-emerald-700 dark:border-emerald-400"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-emerald-700 dark:bg-emerald-600 flex items-center justify-center text-white font-semibold text-sm">
+              {(username || user?.email || 'U').charAt(0).toUpperCase()}
+            </div>
+          )}
           
           <div ref={settingsRef} className="relative">
             <Button 
